@@ -38,7 +38,8 @@ const FirebaseProvider = ({ children }) => {
     // 1. Firebase Initialization and Authentication
     useEffect(() => {
         if (!firebaseConfig) {
-            console.error("Firebase config not available.");
+            console.warn("Firebase config not available. Running in demo mode without backend features.");
+            setIsAuthReady(true);
             return;
         }
 
