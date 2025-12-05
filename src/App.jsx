@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, onSnapshot, collection, query, addDoc, serverTimestamp, where, deleteDoc } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 // --- Custom Icon Components (Simulating lucide-react) ---
 const Star = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>);
@@ -642,35 +643,79 @@ const PrivateJobPost = ({ id }) => {
     const [confirmDeleteId, setConfirmDeleteId] = useState(null); // NEW: Track which job is pending deletion
 
 
-    // Configuration for the Email/Code Auth Flow
-    const AUTHORIZED_EMAIL = "howard@bluestarequitygroup.com"; // Case-insensitive check
-    const SIMULATED_CODE = "123456";
-
+    // Portfolio companies list
     const portfolioCompanies = [
         "Lonestar Hydro Solutions", "Circle H Lawn and Tree",
         "Blue Star Heritage Insurance", "Blue Star FinCo"
     ];
 
-    // Step 1: Handle Email Submission
-    const handleSendCode = (e) => {
+    // Step 1: Handle Email Submission - Call Cloud Function to send code
+    const handleSendCode = async (e) => {
         e.preventDefault();
-        setStatus(null);
-        if (email.toLowerCase() === AUTHORIZED_EMAIL.toLowerCase()) {
+        setStatus({ type: 'submitting', message: 'Sending code...' });
+
+        try {
+            // Get Firebase functions instance
+            const functions = getFunctions();
+            const sendLoginCode = httpsCallable(functions, 'sendLoginCode');
+
+            // Call cloud function
+            const result = await sendLoginCode({ email });
+
             setAuthStep('code');
-            setStatus({ type: 'info', message: `A temporary code has been 'sent' to ${email}. Check your simulated inbox (Code: ${SIMULATED_CODE}).` });
-        } else {
-            setStatus({ type: 'error', message: `Access denied. Only ${AUTHORIZED_EMAIL} is authorized.` });
+            setStatus({
+                type: 'info',
+                message: `A 6-digit code has been sent to ${email}. Please check your inbox (and spam folder).`
+            });
+        } catch (error) {
+            console.error('Error sending code:', error);
+
+            let errorMessage = 'Failed to send code. Please try again.';
+            if (error.code === 'functions/permission-denied') {
+                errorMessage = 'Access denied. Only authorized users can log in.';
+            } else if (error.code === 'functions/invalid-argument') {
+                errorMessage = 'Please enter a valid email address.';
+            } else if (error.code === 'functions/unavailable') {
+                errorMessage = 'Email service temporarily unavailable. Please contact support.';
+            }
+
+            setStatus({ type: 'error', message: errorMessage });
         }
     };
 
-    // Step 2: Handle Code Verification
-    const handleLoginWithCode = (e) => {
+    // Step 2: Handle Code Verification - Call Cloud Function to verify
+    const handleLoginWithCode = async (e) => {
         e.preventDefault();
-        setStatus(null);
-        if (code === SIMULATED_CODE) {
+        setStatus({ type: 'submitting', message: 'Verifying code...' });
+
+        try {
+            // Get Firebase functions instance
+            const functions = getFunctions();
+            const verifyLoginCode = httpsCallable(functions, 'verifyLoginCode');
+
+            // Call cloud function
+            const result = await verifyLoginCode({ email, code });
+
+            // Sign in with custom token
+            if (result.data.token) {
+                await signInWithCustomToken(auth, result.data.token);
+            }
+
             setIsLoggedIn(true);
-        } else {
-            setStatus({ type: 'error', message: 'Invalid code. Please try again.' });
+            setStatus({ type: 'success', message: 'Login successful!' });
+        } catch (error) {
+            console.error('Error verifying code:', error);
+
+            let errorMessage = 'Invalid code. Please try again.';
+            if (error.code === 'functions/not-found') {
+                errorMessage = 'Invalid or expired code.';
+            } else if (error.code === 'functions/deadline-exceeded') {
+                errorMessage = 'Code has expired. Please request a new one.';
+            } else if (error.code === 'functions/permission-denied') {
+                errorMessage = 'Invalid code. Please try again.';
+            }
+
+            setStatus({ type: 'error', message: errorMessage });
         }
     };
 
