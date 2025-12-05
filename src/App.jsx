@@ -498,6 +498,17 @@ const CareersSection = ({ id, onNavigate }) => {
     );
 };
 
+// Auth Box Component (used by PrivateJobPost)
+const AuthBox = ({ children, title, id }) => (
+    <section id={id} className="py-24 bg-gray-900 text-white min-h-screen flex items-center">
+        <div className="max-w-md mx-auto p-8 bg-gray-800 rounded-xl shadow-2xl border-t-4 border-yellow-400">
+            <AtSign className="w-10 h-10 text-yellow-400 mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-center mb-6">{title}</h2>
+            {children}
+        </div>
+    </section>
+);
+
 // Private Job Posting Page (Updated with Email/Code Auth and Management)
 const PrivateJobPost = ({ id }) => {
     const { db, appId, jobs } = useFirebase();
@@ -595,20 +606,10 @@ const PrivateJobPost = ({ id }) => {
 
     // --- Conditional Rendering for Auth Steps ---
 
-    const AuthBox = ({ children, title }) => (
-        <section id={id} className="py-24 bg-gray-900 text-white min-h-screen flex items-center">
-            <div className="max-w-md mx-auto p-8 bg-gray-800 rounded-xl shadow-2xl border-t-4 border-yellow-400">
-                <AtSign className="w-10 h-10 text-yellow-400 mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-center mb-6">{title}</h2>
-                {children}
-            </div>
-        </section>
-    );
-
     if (!isLoggedIn) {
         if (authStep === 'email') {
             return (
-                <AuthBox title="Admin Access: Enter Email">
+                <AuthBox id={id} title="Admin Access: Enter Email">
                     <form onSubmit={handleSendCode} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
@@ -640,7 +641,7 @@ const PrivateJobPost = ({ id }) => {
 
         if (authStep === 'code') {
             return (
-                <AuthBox title="Admin Access: Enter Code">
+                <AuthBox id={id} title="Admin Access: Enter Code">
                     {status?.type === 'info' && (
                         <p className="text-center text-blue-400 p-2 mb-4 bg-gray-700 rounded-md">
                             {status.message}
