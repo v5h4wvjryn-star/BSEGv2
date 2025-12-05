@@ -32,3 +32,11 @@ dist-ssr
 
 # Build output
 build
+
+# Firebase
+.firebase
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+functions/node_modules
+functions/.runtimeconfig.json
