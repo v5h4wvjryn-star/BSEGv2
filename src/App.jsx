@@ -509,6 +509,126 @@ const AuthBox = ({ children, title, id }) => (
     </section>
 );
 
+// Post Job Form Component (moved outside to prevent re-renders)
+const PostJobForm = ({ handleSubmit, jobData, handleChange, portfolioCompanies, status }) => (
+    <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+            <label htmlFor="company" className="block text-sm font-medium text-gray-300 mb-1">Company</label>
+            <select
+                id="company"
+                name="company"
+                value={jobData.company}
+                onChange={handleChange}
+                required
+                className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
+            >
+                {portfolioCompanies.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-1">Job Title</label>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={jobData.title}
+                    onChange={handleChange}
+                    required
+                    className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
+                />
+            </div>
+            <div>
+                <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-1">Location (City, State/Remote)</label>
+                <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    value={jobData.location}
+                    onChange={handleChange}
+                    required
+                    className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
+                />
+            </div>
+        </div>
+
+        <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-1">Job Description</label>
+            <textarea
+                id="description"
+                name="description"
+                rows="8"
+                value={jobData.description}
+                onChange={handleChange}
+                required
+                className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
+            ></textarea>
+        </div>
+
+        <button
+            type="submit"
+            disabled={status?.type === 'submitting'}
+            className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+            {status?.type === 'submitting' ? status.message : 'Post New Job Opening'}
+            {status?.type === 'submitting' ? <Star className="ml-2 w-4 h-4 animate-spin" /> : <Check className="ml-2 w-4 h-4" />}
+        </button>
+    </form>
+);
+
+// Manage Jobs List Component (moved outside to prevent re-renders)
+const ManageJobsList = ({ jobs, confirmDeleteId, handleDeleteStart, handleDeleteConfirm, status }) => (
+    <div>
+        {jobs.length === 0 ? (
+            <div className="text-center p-10 bg-gray-700 rounded-xl text-gray-400">
+                <X className="w-12 h-12 mx-auto mb-4" />
+                <p className="text-xl font-semibold">No open positions found.</p>
+                <p className="mt-2">Use the "Post New Job" tab to create a role.</p>
+            </div>
+        ) : (
+            <div className="space-y-4">
+                {jobs.map(job => (
+                    <div key={job.id} className="bg-gray-700 p-4 rounded-lg flex items-center justify-between shadow-md">
+                        <div>
+                            <h4 className="text-lg font-bold text-white">{job.title}</h4>
+                            <p className="text-sm text-gray-400">
+                                {job.company} - {job.location}
+                            </p>
+                        </div>
+
+                        {confirmDeleteId === job.id ? (
+                            <div className="flex space-x-2">
+                                <button
+                                    onClick={() => handleDeleteConfirm(job.id, job.title)}
+                                    disabled={status?.type === 'submitting'}
+                                    className="px-3 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition disabled:opacity-50"
+                                >
+                                    CONFIRM CLOSE
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteStart(null)}
+                                    className="px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-500 transition"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => handleDeleteStart(job.id)}
+                                disabled={status?.type === 'submitting'}
+                                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Close Role
+                            </button>
+                        )}
+                    </div>
+                ))}
+            </div>
+        )}
+    </div>
+);
+
 // Private Job Posting Page (Updated with Email/Code Auth and Management)
 const PrivateJobPost = ({ id }) => {
     const { db, appId, jobs } = useFirebase();
@@ -682,130 +802,6 @@ const PrivateJobPost = ({ id }) => {
         }
     }
 
-    // --- Job Post/Manage Tabs (if isLoggedIn is true) ---
-
-    // Component for Posting a Job
-    const PostJobForm = () => (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-                <label htmlFor="company" className="block text-sm font-medium text-gray-300 mb-1">Company</label>
-                <select
-                    id="company"
-                    name="company"
-                    value={jobData.company}
-                    onChange={handleChange}
-                    required
-                    className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
-                >
-                    {portfolioCompanies.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-1">Job Title</label>
-                    <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        value={jobData.title}
-                        onChange={handleChange}
-                        required
-                        className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
-                    />
-                </div>
-                <div>
-                    <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-1">Location (City, State/Remote)</label>
-                    <input
-                        type="text"
-                        id="location"
-                        name="location"
-                        value={jobData.location}
-                        onChange={handleChange}
-                        required
-                        className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
-                    />
-                </div>
-            </div>
-
-            <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-1">Job Description</label>
-                <textarea
-                    id="description"
-                    name="description"
-                    rows="8"
-                    value={jobData.description}
-                    onChange={handleChange}
-                    required
-                    className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
-                ></textarea>
-            </div>
-
-            <button
-                type="submit"
-                disabled={status?.type === 'submitting'}
-                className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                {status?.type === 'submitting' ? status.message : 'Post New Job Opening'}
-                {status?.type === 'submitting' ? <Star className="ml-2 w-4 h-4 animate-spin" /> : <Check className="ml-2 w-4 h-4" />}
-            </button>
-        </form>
-    );
-
-    // Component for Managing (Closing) Jobs
-    const ManageJobsList = () => (
-        <div>
-            {jobs.length === 0 ? (
-                <div className="text-center p-10 bg-gray-700 rounded-xl text-gray-400">
-                    <X className="w-12 h-12 mx-auto mb-4" />
-                    <p className="text-xl font-semibold">No open positions found.</p>
-                    <p className="mt-2">Use the "Post New Job" tab to create a role.</p>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {jobs.map(job => (
-                        <div key={job.id} className="bg-gray-700 p-4 rounded-lg flex items-center justify-between shadow-md">
-                            <div>
-                                <h4 className="text-lg font-bold text-white">{job.title}</h4>
-                                <p className="text-sm text-gray-400">
-                                    {job.company} - {job.location}
-                                </p>
-                            </div>
-
-                            {/* Confirmation Logic */}
-                            {confirmDeleteId === job.id ? (
-                                <div className="flex space-x-2">
-                                    <button
-                                        onClick={() => handleDeleteConfirm(job.id, job.title)}
-                                        disabled={status?.type === 'submitting'}
-                                        className="px-3 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition disabled:opacity-50"
-                                    >
-                                        CONFIRM CLOSE
-                                    </button>
-                                    <button
-                                        onClick={() => setConfirmDeleteId(null)}
-                                        className="px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-500 transition"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={() => handleDeleteStart(job.id)}
-                                    disabled={status?.type === 'submitting'}
-                                    className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Close Role
-                                </button>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-
-
     return (
         <section id={id} className="py-24 bg-gray-900 text-white min-h-screen">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -860,7 +856,23 @@ const PrivateJobPost = ({ id }) => {
                     )}
 
 
-                    {managementView === 'post' ? <PostJobForm /> : <ManageJobsList />}
+                    {managementView === 'post' ? (
+                        <PostJobForm
+                            handleSubmit={handleSubmit}
+                            jobData={jobData}
+                            handleChange={handleChange}
+                            portfolioCompanies={portfolioCompanies}
+                            status={status}
+                        />
+                    ) : (
+                        <ManageJobsList
+                            jobs={jobs}
+                            confirmDeleteId={confirmDeleteId}
+                            handleDeleteStart={handleDeleteStart}
+                            handleDeleteConfirm={handleDeleteConfirm}
+                            status={status}
+                        />
+                    )}
                 </div>
             </div>
         </section>
