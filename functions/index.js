@@ -6,8 +6,10 @@ admin.initializeApp();
 
 // Whitelist of authorized emails
 const AUTHORIZED_EMAILS = [
-  'howard@bluestarequitygroup.com',
-  // Add more authorized emails here
+  'howard@bluestarequitygroup.com',  // Primary admin
+  // Add more authorized emails here:
+  // 'admin2@bluestarequitygroup.com',
+  // 'hr@bluestarequitygroup.com',
 ];
 
 // Initialize Resend (API key will be set via environment variable)
