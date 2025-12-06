@@ -1,6 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const sgMail = require('@sendgrid/mail');
+const { Resend } = require('resend');
 
 admin.initializeApp();
 
@@ -10,8 +10,8 @@ const AUTHORIZED_EMAILS = [
   // Add more authorized emails here
 ];
 
-// Initialize SendGrid (API key will be set via environment variable)
-sgMail.setApiKey(functions.config().sendgrid?.key || process.env.SENDGRID_API_KEY);
+// Initialize Resend (API key will be set via environment variable)
+const resend = new Resend(functions.config().resend?.key || process.env.RESEND_API_KEY);
 
 /**
  * Cloud Function: Send login code via email
@@ -46,12 +46,11 @@ exports.sendLoginCode = functions.https.onCall(async (data, context) => {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // Send email via SendGrid
-    const msg = {
+    // Send email via Resend
+    await resend.emails.send({
+      from: 'onboarding@resend.dev', // Use Resend's default sender
       to: email,
-      from: 'noreply@bluestarequitygroup.com', // Change to your verified sender
       subject: 'Your Blue Star Equity Group Admin Login Code',
-      text: `Your login code is: ${code}\n\nThis code will expire in 10 minutes.\n\nIf you didn't request this code, please ignore this email.`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -84,9 +83,7 @@ exports.sendLoginCode = functions.https.onCall(async (data, context) => {
         </body>
         </html>
       `,
-    };
-
-    await sgMail.send(msg);
+    });
 
     return {
       success: true,
@@ -97,8 +94,9 @@ exports.sendLoginCode = functions.https.onCall(async (data, context) => {
   } catch (error) {
     console.error('Error sending login code:', error);
 
-    if (error.code === 403) {
-      throw new functions.https.HttpsError('unavailable', 'Email service temporarily unavailable. Please contact support.');
+    // Handle Resend-specific errors
+    if (error.message?.includes('API key')) {
+      throw new functions.https.HttpsError('unavailable', 'Email service configuration error. Please contact support.');
     }
 
     throw new functions.https.HttpsError('internal', 'Failed to send login code');

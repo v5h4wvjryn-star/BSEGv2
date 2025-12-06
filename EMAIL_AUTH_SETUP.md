@@ -13,7 +13,7 @@ This guide will walk you through setting up secure email-based authentication fo
 ## 📋 Prerequisites
 
 1. Firebase project (already set up ✅)
-2. SendGrid account (free tier is sufficient)
+2. Resend account (free tier: 100 emails/day, 3,000/month)
 3. Firebase CLI installed
 4. Node.js 18+ installed
 
@@ -55,34 +55,35 @@ cd functions
 npm install
 ```
 
-### Step 5: Set Up SendGrid
+### Step 5: Set Up Resend
 
-#### 5a. Create SendGrid Account
+#### 5a. Create Resend Account
 
-1. Go to https://sendgrid.com/
-2. Sign up for free (100 emails/day)
+1. Go to https://resend.com/
+2. Sign up for free (100 emails/day, 3,000/month)
 3. Verify your email address
 
 #### 5b. Get API Key
 
-1. Go to Settings > API Keys
+1. In your Resend dashboard, go to "API Keys"
 2. Click "Create API Key"
 3. Name it: "BSEGv2 Admin Auth"
-4. Select "Restricted Access"
-5. Enable "Mail Send" permission only
-6. Copy the API key (you won't see it again!)
+4. Copy the API key: **re_J6dYXZtz_AiRepkzemKFva9mCuMYvsg6M** ✅ (Already done!)
 
-#### 5c. Verify Sender Email
+#### 5c. Sender Email
 
-1. Go to Settings > Sender Authentication
-2. Verify a sender email (e.g., `noreply@bluestarequitygroup.com`)
-3. Follow the verification steps
-4. Update `functions/index.js` line 39 with your verified sender email
+For now, use Resend's default sender: `onboarding@resend.dev`
+
+Later, if you want to use your own domain:
+1. Go to Resend Dashboard > Domains
+2. Add your domain (e.g., `bluestarequitygroup.com`)
+3. Configure DNS records
+4. Update `functions/index.js` line 51 to use your domain
 
 #### 5d. Set API Key in Firebase
 
 ```bash
-firebase functions:config:set sendgrid.key="YOUR_SENDGRID_API_KEY"
+firebase functions:config:set resend.key="re_J6dYXZtz_AiRepkzemKFva9mCuMYvsg6M"
 ```
 
 ### Step 6: Configure Authorized Emails
@@ -221,7 +222,7 @@ Edit the email HTML in `functions/index.js` lines 49-78 to customize:
 ## 💰 Cost Considerations
 
 **Free Tier Limits:**
-- **SendGrid**: 100 emails/day (forever free)
+- **Resend**: 100 emails/day, 3,000/month (forever free)
 - **Firebase Functions**: 2M invocations/month, 400K GB-seconds/month
 - **Firestore**: 1 GB storage, 50K reads/day, 20K writes/day
 
