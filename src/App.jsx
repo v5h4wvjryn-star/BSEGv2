@@ -26,6 +26,7 @@ const AtSign = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" wi
 // Global Firebase state
 let db = null;
 let auth = null;
+let functions = null;
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
@@ -47,6 +48,7 @@ const FirebaseProvider = ({ children }) => {
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
+        functions = getFunctions(app);
 
         // Sign in or set up auth listener
         const signInUser = async () => {
@@ -655,11 +657,8 @@ const PrivateJobPost = ({ id }) => {
         setStatus({ type: 'submitting', message: 'Sending code...' });
 
         try {
-            // Get Firebase functions instance
-            const functions = getFunctions();
-            const sendLoginCode = httpsCallable(functions, 'sendLoginCode');
-
             // Call cloud function
+            const sendLoginCode = httpsCallable(functions, 'sendLoginCode');
             const result = await sendLoginCode({ email });
 
             setAuthStep('code');
@@ -689,11 +688,8 @@ const PrivateJobPost = ({ id }) => {
         setStatus({ type: 'submitting', message: 'Verifying code...' });
 
         try {
-            // Get Firebase functions instance
-            const functions = getFunctions();
-            const verifyLoginCode = httpsCallable(functions, 'verifyLoginCode');
-
             // Call cloud function
+            const verifyLoginCode = httpsCallable(functions, 'verifyLoginCode');
             const result = await verifyLoginCode({ email, code });
 
             // Sign in with custom token
