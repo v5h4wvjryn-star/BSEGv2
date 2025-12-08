@@ -36,7 +36,7 @@ jobs:
 
       - name: Inject Firebase Config
         run: |
-          cat > inject-config.js << 'SCRIPT_EOF'
+          cat > inject-config.cjs << 'SCRIPT_EOF'
           const fs = require('fs');
           const path = require('path');
 
@@ -64,7 +64,7 @@ jobs:
           console.log('Firebase config injected successfully');
           SCRIPT_EOF
 
-          node inject-config.js
+          node inject-config.cjs
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
