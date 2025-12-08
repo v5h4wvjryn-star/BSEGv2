@@ -48,7 +48,7 @@ const FirebaseProvider = ({ children }) => {
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
-        functions = getFunctions(app);
+        functions = getFunctions(app, 'us-central1'); // Specify region
 
         // Sign in or set up auth listener
         const signInUser = async () => {
