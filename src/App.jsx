@@ -326,7 +326,7 @@ const PortfolioSection = ({ id, onNavigate }) => {
             description: "A comprehensive, customer-focused provider of professional landscape and arboreal maintenance services.",
             icon: <Sprout className="w-10 h-10 text-white" />,
             type: "Acquisition & Optimization",
-            url: "https://chltv2.netlify.app/",
+            url: "https://v5h4wvjryn-star.github.io/CHLTv2/",
             isHiring: hiringStatus["Circle H Lawn and Tree"]
         },
         {
