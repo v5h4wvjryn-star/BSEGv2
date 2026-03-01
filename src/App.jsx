@@ -238,13 +238,6 @@ const HeroSection = ({ id, onNavigate }) => (
             <p className="text-xl md:text-2xl text-gray-300 mb-10 font-light max-w-3xl mx-auto animate-fadeInUp delay-200">
                 A modern private equity group dedicated to transformative value creation through strategic acquisition and ground-up ventures.
             </p>
-            <button
-                onClick={() => document.getElementById('portfolio').scrollIntoView({ behavior: 'smooth' })}
-                className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-xl transform hover:scale-105"
-            >
-                Explore Our Portfolio
-                <ArrowRight className="ml-3 w-4 h-4" />
-            </button>
         </div>
     </section>
 );
