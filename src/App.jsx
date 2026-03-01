@@ -297,9 +297,6 @@ const AboutSection = ({ id }) => (
                             <p className="flex items-center justify-center text-lg bg-white p-3 rounded-lg shadow-md border-b-4 border-blue-500">
                                 3. Sustained Growth & Market Expansion
                             </p>
-                            <p className="flex items-center justify-center text-lg bg-yellow-400 p-3 rounded-lg shadow-md border-b-4 border-yellow-600 font-bold">
-                                4. Successful Exit & Investor Return
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -1060,31 +1057,20 @@ const App = () => {
     const sections = [
         { id: 'home', name: 'Home' },
         { id: 'about', name: 'About' },
-        { id: 'portfolio', name: 'Portfolio' },
-        { id: 'careers', name: 'Careers' },
         { id: 'contact', name: 'Contact' },
-        { id: 'post-job', name: 'Admin (Job Post)' }
     ];
 
     const navigate = (pageId) => {
         setCurrentPage(pageId);
     };
 
-    const mainContent = (() => {
-        if (currentPage === 'post-job') {
-            return <PrivateJobPost id="post-job" />;
-        }
-
-        return (
-            <main className="pt-20">
-                <HeroSection id="home" onNavigate={navigate} />
-                <AboutSection id="about" />
-                <PortfolioSection id="portfolio" onNavigate={navigate} />
-                <CareersSection id="careers" onNavigate={navigate} />
-                <ContactSection id="contact" />
-            </main>
-        );
-    })();
+    const mainContent = (
+        <main className="pt-20">
+            <HeroSection id="home" onNavigate={navigate} />
+            <AboutSection id="about" />
+            <ContactSection id="contact" />
+        </main>
+    );
 
     return (
         <FirebaseProvider>
