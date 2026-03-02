@@ -911,18 +911,31 @@ const PrivateJobPost = ({ id }) => {
 };
 
 
-// Contact Section (Unchanged)
+// Contact Section
 const ContactSection = ({ id }) => {
     const [status, setStatus] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
-    // Simulated form submission
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus('submitting');
-        setTimeout(() => {
+        setErrorMessage('');
+
+        const formData = new FormData(e.target);
+        const name = formData.get('name');
+        const email = formData.get('email');
+        const message = formData.get('message');
+
+        try {
+            const sendContactMessage = httpsCallable(functions, 'sendContactMessage');
+            await sendContactMessage({ name, email, message });
             setStatus('success');
-            e.target.reset(); // Clear the form
-        }, 1500);
+            e.target.reset();
+        } catch (error) {
+            console.error('Error sending message:', error);
+            setStatus('error');
+            setErrorMessage('Failed to send your message. Please try again or email us directly.');
+        }
     };
 
     return (
@@ -997,6 +1010,11 @@ const ContactSection = ({ id }) => {
                             {status === 'success' && (
                                 <p className="text-center text-green-400 mt-4 font-semibold">
                                     Thank you! Your message has been received and we will be in touch shortly.
+                                </p>
+                            )}
+                            {status === 'error' && (
+                                <p className="text-center text-red-400 mt-4 font-semibold">
+                                    {errorMessage}
                                 </p>
                             )}
                         </form>
