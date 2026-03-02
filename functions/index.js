@@ -162,6 +162,77 @@ exports.verifyLoginCode = functions.https.onCall(async (data, context) => {
 });
 
 /**
+ * Cloud Function: Send contact form message
+ * Callable from frontend
+ */
+exports.sendContactMessage = functions.https.onCall(async (data, context) => {
+  const name = data.name?.trim();
+  const email = data.email?.toLowerCase().trim();
+  const message = data.message?.trim();
+
+  if (!name || !email || !message) {
+    throw new functions.https.HttpsError('invalid-argument', 'Name, email, and message are required');
+  }
+
+  if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Invalid email address');
+  }
+
+  try {
+    await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to: 'info@bluestarequitygroup.com',
+      reply_to: email,
+      subject: `New Contact Form Message from ${name}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #1f2937; color: #fbbf24; padding: 20px; text-align: center; }
+            .field { margin-bottom: 16px; }
+            .label { font-weight: bold; color: #1f2937; }
+            .value { margin-top: 4px; padding: 10px; background: #f3f4f6; border-radius: 6px; }
+            .footer { color: #6b7280; font-size: 12px; margin-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Blue Star Equity Group</h1>
+              <p>New Contact Form Submission</p>
+            </div>
+            <div class="field">
+              <div class="label">Name:</div>
+              <div class="value">${name}</div>
+            </div>
+            <div class="field">
+              <div class="label">Email:</div>
+              <div class="value"><a href="mailto:${email}">${email}</a></div>
+            </div>
+            <div class="field">
+              <div class="label">Message:</div>
+              <div class="value">${message.replace(/\n/g, '<br>')}</div>
+            </div>
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} Blue Star Equity Group. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+
+    return { success: true, message: 'Message sent successfully' };
+  } catch (error) {
+    console.error('Error sending contact message:', error);
+    throw new functions.https.HttpsError('internal', 'Failed to send message');
+  }
+});
+
+/**
  * Scheduled function: Clean up expired login codes
  * Runs every hour
  */
