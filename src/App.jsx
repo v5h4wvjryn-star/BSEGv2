@@ -947,19 +947,6 @@ const ContactSection = ({ id }) => {
                                     info@bluestarequitygroup.com
                                 </a>
                             </div>
-                            <div className="flex items-center space-x-3">
-                                <Phone className="w-6 h-6 text-blue-600" />
-                                <a href="tel:+15555555555" className="text-lg text-blue-600 hover:text-blue-800 transition font-medium">
-                                    555-555-5555
-                                </a>
-                            </div>
-                            <div className="pt-4">
-                                <p className="text-gray-500">Headquarters (Mock Location)</p>
-                                <p className="text-gray-700 font-semibold">
-                                    123 Equity Plaza, Suite 400<br />
-                                    Dallas, Texas 75201
-                                </p>
-                            </div>
                         </div>
                     </div>
 
