@@ -181,7 +181,7 @@ exports.sendContactMessage = functions.https.onCall(async (data, context) => {
   try {
     await resend.emails.send({
       from: 'onboarding@resend.dev',
-      to: 'info@bluestarequitygroup.com',
+      to: 'howard@bluestarequitygroup.com',
       reply_to: email,
       subject: `New Contact Form Message from ${name}`,
       html: `
