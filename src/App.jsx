@@ -913,45 +913,45 @@ const PrivateJobPost = ({ id }) => {
 
 // Seller Section
 const SellerSection = ({ id }) => (
-    <section id={id} className="section-container bg-gradient-to-b from-gray-50 to-white">
+    <section id={id} className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-5xl mx-auto">
-            <h2 className="section-title text-center">Thinking About Selling Your Business?</h2>
-            <p className="text-center text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
+            <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 text-center mb-6 leading-tight">Thinking About Selling Your Business?</h2>
+            <p className="text-center text-xl text-gray-500 mb-16 max-w-3xl mx-auto">
                 Blue Star Equity Group acquires service-based businesses from owners who have built something worth preserving.
             </p>
             <div className="grid md:grid-cols-3 gap-8 mb-12">
 
                 {/* Card 1 */}
-                <div className="bg-white rounded-xl p-8 text-center border border-gray-200 shadow-md hover:shadow-xl hover:border-blue-star-300 transition-all duration-300">
-                    <div className="bg-blue-star-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-blue-star-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="bg-white rounded-2xl p-10 text-center border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-300 transition-all duration-300">
+                    <div className="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-9 h-9 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
                     </div>
                     <h3 className="font-bold text-xl text-gray-900 mb-3">We Buy Service Businesses</h3>
-                    <p className="text-gray-600">Insurance agencies, landscaping, property services, home services, and similar businesses with recurring revenue and strong local reputations.</p>
+                    <p className="text-gray-500">Insurance agencies, landscaping, property services, home services, and similar businesses with recurring revenue and strong local reputations.</p>
                 </div>
 
                 {/* Card 2 */}
-                <div className="bg-white rounded-xl p-8 text-center border border-gray-200 shadow-md hover:shadow-xl hover:border-blue-star-300 transition-all duration-300">
-                    <div className="bg-blue-star-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-blue-star-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="bg-white rounded-2xl p-10 text-center border border-blue-300 shadow-sm hover:shadow-lg transition-all duration-300">
+                    <div className="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-9 h-9 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                     </div>
                     <h3 className="font-bold text-xl text-gray-900 mb-3">We Honor What You Built</h3>
-                    <p className="text-gray-600">We protect your customers, retain your team, and continue your legacy — we don't buy businesses to strip them down. We buy them to make them stronger.</p>
+                    <p className="text-gray-500">We protect your customers, retain your team, and continue your legacy — we don't buy businesses to strip them down. We buy them to make them stronger.</p>
                 </div>
 
                 {/* Card 3 */}
-                <div className="bg-white rounded-xl p-8 text-center border border-gray-200 shadow-md hover:shadow-xl hover:border-blue-star-300 transition-all duration-300">
-                    <div className="bg-blue-star-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-blue-star-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="bg-white rounded-2xl p-10 text-center border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-300 transition-all duration-300">
+                    <div className="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-9 h-9 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                     </div>
                     <h3 className="font-bold text-xl text-gray-900 mb-3">Confidential & Straightforward</h3>
-                    <p className="text-gray-600">Our process is direct and confidential. No brokers, no pressure. We move with respect for your timeline and clear communication throughout.</p>
+                    <p className="text-gray-500">Our process is direct and confidential. No brokers, no pressure. We move with respect for your timeline and clear communication throughout.</p>
                 </div>
 
             </div>
@@ -960,12 +960,12 @@ const SellerSection = ({ id }) => (
             <div className="bg-gray-900 text-white rounded-2xl p-10 text-center">
                 <h3 className="text-2xl font-bold mb-4">What We Look For</h3>
                 <div className="grid md:grid-cols-2 gap-4 text-left max-w-2xl mx-auto mb-8">
-                    <div className="flex items-start"><span className="text-blue-star-400 mr-3 text-xl">✓</span><span>Established service business with 2+ years of operation</span></div>
-                    <div className="flex items-start"><span className="text-blue-star-400 mr-3 text-xl">✓</span><span>Revenue between $300K–$5M annually</span></div>
-                    <div className="flex items-start"><span className="text-blue-star-400 mr-3 text-xl">✓</span><span>Owner ready to transition within 12–24 months</span></div>
-                    <div className="flex items-start"><span className="text-blue-star-400 mr-3 text-xl">✓</span><span>Texas-based or surrounding region preferred</span></div>
+                    <div className="flex items-start"><span className="text-blue-400 mr-3 text-xl">✓</span><span>Established service business with 2+ years of operation</span></div>
+                    <div className="flex items-start"><span className="text-blue-400 mr-3 text-xl">✓</span><span>Revenue between $300K–$5M annually</span></div>
+                    <div className="flex items-start"><span className="text-blue-400 mr-3 text-xl">✓</span><span>Owner ready to transition within 12–24 months</span></div>
+                    <div className="flex items-start"><span className="text-blue-400 mr-3 text-xl">✓</span><span>Texas-based or surrounding region preferred</span></div>
                 </div>
-                <a href="mailto:acquisitions@bluestarequitygroup.com" className="inline-block bg-blue-star-500 hover:bg-blue-star-400 text-white font-semibold px-8 py-4 rounded-lg transition">
+                <a href="mailto:acquisitions@bluestarequitygroup.com" className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-4 rounded-lg transition">
                     Start a Confidential Conversation
                 </a>
             </div>
