@@ -977,113 +977,34 @@ const SellerSection = ({ id }) => (
 
 // Contact Section
 const ContactSection = ({ id }) => {
-    const [status, setStatus] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setStatus('submitting');
-        setErrorMessage('');
-
-        const formData = new FormData(e.target);
-        const name = formData.get('name');
-        const email = formData.get('email');
-        const message = formData.get('message');
-
-        try {
-            const sendContactMessage = httpsCallable(functions, 'sendContactMessage');
-            await sendContactMessage({ name, email, message });
-            setStatus('success');
-            e.target.reset();
-        } catch (error) {
-            console.error('Error sending message:', error);
-            setStatus('error');
-            setErrorMessage('Failed to send your message. Please try again or email us directly.');
-        }
-    };
-
     return (
         <section id={id} className="py-24 bg-white text-gray-900">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-4xl font-extrabold text-center mb-16 border-b-2 border-blue-400 pb-2 inline-block mx-auto">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 className="text-4xl font-extrabold text-center mb-6 border-b-2 border-blue-400 pb-2 inline-block mx-auto">
                     Contact Us
                 </h2>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    {/* Contact Info */}
-                    <div className="lg:col-span-1 space-y-8 p-6 bg-gray-50 rounded-xl shadow-inner border border-gray-200">
-                        <h3 className="text-2xl font-bold text-gray-900">Reach Our Team</h3>
-                        <p className="text-gray-600">
-                            We are ready to discuss investment opportunities, partnerships, or any general inquiries.
-                        </p>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-4">
+                    We are ready to discuss investment opportunities, partnerships, or any general inquiries.
+                </p>
 
-                        <div className="space-y-4">
-                            <div className="flex items-center space-x-3">
-                                <Mail className="w-6 h-6 text-blue-600" />
-                                <a href="mailto:info@bluestarequitygroup.com" className="text-lg text-blue-600 hover:text-blue-800 transition font-medium">
-                                    info@bluestarequitygroup.com
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                <p className="text-gray-500 mb-10">
+                    Click the button below to send us an email and a member of our team will be in touch shortly.
+                </p>
 
-                    {/* Contact Form */}
-                    <div className="lg:col-span-2 p-8 bg-gray-900 rounded-xl shadow-2xl">
-                        <h3 className="text-2xl font-bold text-white mb-6">Send Us a Message</h3>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">Full Name</label>
-                                <input
-                                    type="text"
-                                    id="name"
-                                    name="name"
-                                    required
-                                    className="w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500 transition"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
-                                <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    required
-                                    className="w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500 transition"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">Message</label>
-                                <textarea
-                                    id="message"
-                                    name="message"
-                                    rows="4"
-                                    required
-                                    className="w-full p-3 rounded-md bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500 transition"
-                ></textarea>
-                            </div>
+                <a
+                    href="mailto:info@bluestarequitygroup.com"
+                    className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-semibold rounded-lg text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-lg"
+                >
+                    <Mail className="mr-3 w-5 h-5" />
+                    Email Us
+                </a>
 
-                            <button
-                                type="submit"
-                                disabled={status === 'submitting'}
-                                className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {status === 'submitting' ? 'Sending...' : 'Send Message'}
-                                <ArrowRight className="ml-2 w-4 h-4" />
-                            </button>
-
-                            {status === 'success' && (
-                                <p className="text-center text-green-400 mt-4 font-semibold">
-                                    Thank you! Your message has been received and we will be in touch shortly.
-                                </p>
-                            )}
-                            {status === 'error' && (
-                                <p className="text-center text-red-400 mt-4 font-semibold">
-                                    {errorMessage}
-                                </p>
-                            )}
-                        </form>
-                    </div>
-                </div>
+                <p className="mt-6 text-gray-500 text-sm">
+                    <a href="mailto:info@bluestarequitygroup.com" className="text-blue-600 hover:text-blue-800 transition font-medium">
+                        info@bluestarequitygroup.com
+                    </a>
+                </p>
             </div>
         </section>
     );
