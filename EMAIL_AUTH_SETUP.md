@@ -1,5 +1,18 @@
 # Email Authentication Setup Guide
 
+> [!CAUTION]
+> **This repository is public.** A live Resend API key was previously committed
+> to this file in plaintext and remained in the repository from 2025-12-06.
+> Redacting it here does **not** remove it from git history, where it is still
+> readable by anyone.
+>
+> **The exposed key must be revoked and replaced in the Resend dashboard.**
+> Until it is, treat it as compromised.
+>
+> Never place API keys, tokens, passwords, or one-time codes in this file or any
+> other file in this repository. Store secrets with
+> `firebase functions:config:set` or as GitHub Actions repository secrets.
+
 This guide will walk you through setting up secure email-based authentication for the admin area.
 
 ## 🎯 What This Does
@@ -68,7 +81,8 @@ npm install
 1. In your Resend dashboard, go to "API Keys"
 2. Click "Create API Key"
 3. Name it: "BSEGv2 Admin Auth"
-4. Copy the API key: **re_J6dYXZtz_AiRepkzemKFva9mCuMYvsg6M** ✅ (Already done!)
+4. Copy the API key and store it somewhere safe. **Never commit it to this
+   repository** — see the security note at the top of this file.
 
 #### 5c. Sender Email
 
@@ -83,7 +97,7 @@ Later, if you want to use your own domain:
 #### 5d. Set API Key in Firebase
 
 ```bash
-firebase functions:config:set resend.key="re_J6dYXZtz_AiRepkzemKFva9mCuMYvsg6M"
+firebase functions:config:set resend.key="YOUR_RESEND_API_KEY"
 ```
 
 ### Step 6: Configure Authorized Emails

@@ -104,11 +104,15 @@ If you get index-related errors, Firebase will provide a direct link in the cons
 
 ## Admin Access
 
-The admin job posting page is protected with email/code authentication:
-- Authorized email: `howard@bluestarequitygroup.com`
-- Simulated code: `123456`
+> [!NOTE]
+> The careers portal and admin job-posting UI are **not part of the public
+> website**. The source is kept for reference only, in
+> `archive/careers-admin/`. See that folder's README before reviving it.
 
-To change this, update the `AUTHORIZED_EMAIL` and `SIMULATED_CODE` constants in the `PrivateJobPost` component.
+Admin authentication is handled server-side by the Cloud Functions in
+`functions/`. The list of authorised addresses lives there, not in the client.
+Do not record credentials, one-time codes, or API keys in this repository — it
+is public.
 
 ## Firestore Data Structure
 
