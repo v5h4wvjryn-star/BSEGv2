@@ -1,183 +1,108 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc, onSnapshot, collection, query, addDoc, serverTimestamp, where, deleteDoc } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions';
 
-// --- Custom Icon Components (Simulating lucide-react) ---
-const Star = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>);
-const Briefcase = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>);
-const Mail = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>);
-const Phone = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6.7-6.7A19.79 19.79 0 0 1 2 4.18V2a2 2 0 0 1 2-2 16.92 16.92 0 0 1 8.63 3.07 19.5 19.5 0 0 1 6.7 6.7A19.79 19.79 0 0 1 22 16.92z"/></svg>);
-const ArrowRight = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>);
-const CornerDownRight = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 10l5 5-5 5"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg>);
-const Zap = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>);
-const Shield = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>);
-const Landmark = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><path d="M6 18H2v-7l6-6 6 6v7h-4"/><path d="M21 18h-4v-7l-6-6-2 2"/></svg>);
-const Sprout = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 20h10"/><path d="M12 4v16"/><path d="M7 12a3 3 0 0 1 6 0 3 3 0 0 0 6 0c0-3-2-6-2-6s-1.5-3-2-3-4 2-4 2-2 1.5-2 3c0 3 2 6 2 6a3 3 0 0 0-6 0c0-3-2-6-2-6s-1.5-3-2-3-4 2-4 2-2 1.5-2 3a3 3 0 0 0 6 0Z"/></svg>);
-const X = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>);
-const Check = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>);
-const Key = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.2 15.6-3.8-3.8C18.2 10.5 19 8.7 19 7c0-3.9-3.1-7-7-7s-7 3.1-7 7c0 1.7.8 3.5 1.6 4.8l-3.8 3.8a1 1 0 0 0 0 1.4l.6.6a1 1 0 0 0 1.4 0l3.8-3.8C9.5 18.2 11.3 19 13 19c3.9 0 7-3.1 7-7s-3.1-7-7-7c-1.7 0-3.5.8-4.8 1.6l-3.8 3.8a1 1 0 0 0 0 1.4l.6.6a1 1 0 0 0 1.4 0l3.8-3.8C15.5 18.2 17.3 19 19 19c3.9 0 7-3.1 7-7s-3.1-7-7-7z"/></svg>);
-const AtSign = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4.89 8.64"/></svg>);
+// --- Contact routing -------------------------------------------------------
+// Only addresses that are known-good are used here. See README.md.
+const EMAIL_GENERAL = 'info@bluestarequitygroup.com';
+const EMAIL_ACQUISITIONS = 'acquisitions@bluestarequitygroup.com';
+const EMAIL_REAL_ESTATE = 'realestate@bluestarequitygroup.com';
 
+// --- Icon components (lucide-style, inlined to avoid a dependency) ----------
+const iconProps = (props) => ({
+    xmlns: 'http://www.w3.org/2000/svg',
+    width: 24,
+    height: 24,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    ...props,
+});
 
-// --- Firebase Setup & Context ---
+const Star = (p) => (<svg {...iconProps(p)}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>);
+const Briefcase = (p) => (<svg {...iconProps(p)}><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>);
+const Mail = (p) => (<svg {...iconProps(p)}><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>);
+const ArrowRight = (p) => (<svg {...iconProps(p)}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>);
+const Zap = (p) => (<svg {...iconProps(p)}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>);
+const Building = (p) => (<svg {...iconProps(p)}><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M12 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>);
+const Store = (p) => (<svg {...iconProps(p)}><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>);
+const Warehouse = (p) => (<svg {...iconProps(p)}><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect width="12" height="12" x="6" y="10"/></svg>);
+const Users = (p) => (<svg {...iconProps(p)}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>);
+const TrendingUp = (p) => (<svg {...iconProps(p)}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>);
+const Clock = (p) => (<svg {...iconProps(p)}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>);
+const Calculator = (p) => (<svg {...iconProps(p)}><rect width="16" height="20" x="4" y="2" rx="2"/><rect width="10" height="4" x="7" y="5" rx="1"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/></svg>);
+const Wrench = (p) => (<svg {...iconProps(p)}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>);
+const Scale = (p) => (<svg {...iconProps(p)}><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>);
+const DoorOpen = (p) => (<svg {...iconProps(p)}><path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5.483 20.32a1 1 0 0 1-.759-.97V5.562a1 1 0 0 1 .759-.97l6.275-1.37a1 1 0 0 1 1.242.97z"/></svg>);
+const MapPin = (p) => (<svg {...iconProps(p)}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>);
 
-// Global Firebase state
-let db = null;
-let auth = null;
-let functions = null;
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+// --- Shared pieces ---------------------------------------------------------
 
-const FirebaseProvider = ({ children }) => {
-    const [isAuthReady, setIsAuthReady] = useState(false);
-    const [userId, setUserId] = useState(null);
-    const [jobs, setJobs] = useState([]);
-    const [hiringStatus, setHiringStatus] = useState({});
+const SECTIONS = [
+    { id: 'home', name: 'Home' },
+    { id: 'about', name: 'About' },
+    { id: 'focus', name: 'What We Do' },
+    { id: 'real-estate', name: 'Real Estate' },
+    { id: 'sellers', name: 'Sellers' },
+    { id: 'contact', name: 'Contact' },
+];
 
-    // 1. Firebase Initialization and Authentication
-    useEffect(() => {
-        if (!firebaseConfig) {
-            console.warn("Firebase config not available. Running in demo mode without backend features.");
-            setIsAuthReady(true);
-            return;
-        }
-
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-        functions = getFunctions(app, 'us-central1'); // Specify region
-
-        // Sign in or set up auth listener
-        const signInUser = async () => {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Firebase Auth error:", error);
-            }
-        };
-
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setUserId(user.uid);
-            } else {
-                setUserId(null);
-            }
-            setIsAuthReady(true);
-        });
-
-        signInUser();
-
-        return () => unsubscribeAuth();
-    }, []);
-
-    // 2. Real-time Job Data Listener (onSnapshot)
-    useEffect(() => {
-        if (!isAuthReady || !db) return;
-
-        const jobsCollectionPath = `/artifacts/${appId}/public/data/jobs`;
-        const q = query(collection(db, jobsCollectionPath));
-
-        const unsubscribeJobs = onSnapshot(q, (snapshot) => {
-            const fetchedJobs = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                datePosted: doc.data().datePosted?.toDate ? doc.data().datePosted.toDate() : new Date(),
-            })).sort((a, b) => b.datePosted - a.datePosted); // Sort by newest first
-
-            setJobs(fetchedJobs);
-
-            // Calculate hiring status for portfolio companies
-            const statusMap = fetchedJobs.reduce((acc, job) => {
-                acc[job.company] = true;
-                return acc;
-            }, {});
-            setHiringStatus(statusMap);
-
-        }, (error) => {
-            console.error("Firestore Job Data error:", error);
-        });
-
-        return () => unsubscribeJobs();
-    }, [isAuthReady]);
-
-    // Value exposed to children components
-    const contextValue = {
-        isAuthReady,
-        db,
-        userId,
-        jobs,
-        hiringStatus,
-        appId,
-        auth
-    };
-
-    if (!isAuthReady) {
-        return (
-            <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-                <p className="text-xl">Initializing services...</p>
-            </div>
-        );
-    }
-
-    return (
-        <FirebaseContext.Provider value={contextValue}>
-            {children}
-        </FirebaseContext.Provider>
-    );
-};
-
-// Create a context for state management
-const FirebaseContext = React.createContext();
-const useFirebase = () => React.useContext(FirebaseContext);
-
-// --- Custom Components ---
-
-// Blue Star Logo
-const Logo = ({ className = "" }) => (
+const Logo = ({ className = '' }) => (
     <div className={`flex items-center space-x-2 ${className}`}>
-        <Star className="w-8 h-8 text-yellow-400 fill-current" />
-        <span className="text-2xl font-extrabold tracking-tight text-white">
+        <Star className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 fill-current flex-shrink-0" />
+        <span className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight text-white whitespace-nowrap">
             Blue Star
         </span>
-        <span className="text-2xl font-light tracking-tight text-yellow-400">
+        <span className="text-lg sm:text-xl md:text-2xl font-light tracking-tight text-yellow-400 whitespace-nowrap">
             Equity Group
         </span>
     </div>
 );
 
-// Navigation Bar
-const Navbar = ({ sections, currentPage, onNavigate }) => {
+// Centred section heading. The previous markup used `inline-block mx-auto`,
+// which does not centre an inline-block element — headings rendered flush
+// left. Wrapping in a `text-center` block fixes it consistently everywhere.
+const SectionHeading = ({ children, accent = 'yellow', className = '' }) => (
+    <div className={`text-center ${className}`}>
+        <h2 className={`text-4xl font-extrabold pb-2 inline-block border-b-2 ${
+            accent === 'blue' ? 'border-blue-400' : 'border-yellow-400'
+        }`}>
+            {children}
+        </h2>
+    </div>
+);
+
+// --- Navigation ------------------------------------------------------------
+
+const Navbar = ({ currentSection, onNavigate }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleNavigation = (id) => {
         onNavigate(id);
         setIsOpen(false);
-        // Smooth scroll only if it's a section on the main page
-        if (id !== 'post-job') {
-            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-        }
     };
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900 bg-opacity-95 shadow-lg backdrop-blur-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center transition-all duration-300">
-                <Logo />
+                <button
+                    onClick={() => handleNavigation('home')}
+                    aria-label="Blue Star Equity Group — back to top"
+                    className="focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 rounded"
+                >
+                    <Logo />
+                </button>
 
                 {/* Desktop Nav */}
-                <nav className="hidden lg:flex space-x-8">
-                    {sections.map((section) => (
+                <nav className="hidden lg:flex lg:space-x-6 xl:space-x-8" aria-label="Primary">
+                    {SECTIONS.map((section) => (
                         <button
                             key={section.id}
                             onClick={() => handleNavigation(section.id)}
-                            className={`font-medium transition duration-150 ease-in-out uppercase text-sm tracking-widest ${
-                                currentPage === section.id
+                            aria-current={currentSection === section.id ? 'true' : undefined}
+                            className={`font-medium transition duration-150 ease-in-out uppercase text-sm tracking-widest whitespace-nowrap ${
+                                currentSection === section.id
                                     ? 'text-yellow-400 border-b-2 border-yellow-400'
                                     : 'text-white hover:text-yellow-400'
                             }`}
@@ -191,9 +116,11 @@ const Navbar = ({ sections, currentPage, onNavigate }) => {
                 <button
                     className="lg:hidden text-white p-2 rounded-md hover:bg-gray-800 transition"
                     onClick={() => setIsOpen(!isOpen)}
+                    aria-expanded={isOpen}
+                    aria-label={isOpen ? 'Close menu' : 'Open menu'}
                 >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}></path>
                     </svg>
                 </button>
             </div>
@@ -201,7 +128,7 @@ const Navbar = ({ sections, currentPage, onNavigate }) => {
             {/* Mobile Menu */}
             {isOpen && (
                 <div className="lg:hidden bg-gray-800 border-t border-gray-700">
-                    {sections.map((section) => (
+                    {SECTIONS.map((section) => (
                         <button
                             key={section.id}
                             onClick={() => handleNavigation(section.id)}
@@ -216,11 +143,15 @@ const Navbar = ({ sections, currentPage, onNavigate }) => {
     );
 };
 
-// Hero Section
+// --- Hero ------------------------------------------------------------------
+
 const HeroSection = ({ id, onNavigate }) => (
-    <section id={id} className="relative h-screen flex items-center justify-center bg-gray-900 overflow-hidden">
-        {/* Abstract Background Grid/Pattern for Finance Aesthetic */}
-        <div className="absolute inset-0 opacity-10">
+    <section
+        id={id}
+        className="relative min-h-screen flex items-center justify-center bg-gray-900 overflow-hidden scroll-mt-20 py-28"
+    >
+        {/* Abstract background grid */}
+        <div className="absolute inset-0 opacity-10" aria-hidden="true">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
@@ -232,697 +163,299 @@ const HeroSection = ({ id, onNavigate }) => (
         </div>
 
         <div className="relative z-10 text-center px-4 max-w-4xl">
-            <h1 className="text-6xl md:text-8xl font-extrabold text-white leading-tight mb-4 animate-fadeInUp">
-                Fueling <span className="text-yellow-400">Growth</span>, Building <span className="text-blue-400">Legacy</span>.
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-tight mb-6 animate-fadeInUp">
+                <span className="block">Long-term <span className="text-yellow-400">ownership</span>.</span>
+                <span className="block">Disciplined <span className="text-blue-400">capital</span>.</span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-10 font-light max-w-3xl mx-auto animate-fadeInUp delay-200">
-                A modern private equity group dedicated to transformative value creation through strategic acquisition and ground-up ventures.
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-10 font-light max-w-3xl mx-auto animate-fadeInUp delay-200">
+                Blue Star Equity Group is a privately held investment company building
+                long-term value through operating businesses, commercial real estate,
+                and strategic investments.
             </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fadeInUp delay-200">
+                <button
+                    onClick={() => onNavigate('focus')}
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-base font-semibold rounded-lg text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-lg"
+                >
+                    What We Do
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                </button>
+                <button
+                    onClick={() => onNavigate('contact')}
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-base font-semibold rounded-lg text-white border border-gray-500 hover:border-white hover:bg-white/5 transition duration-300"
+                >
+                    Contact
+                </button>
+            </div>
         </div>
     </section>
 );
 
-// About Section (Corrected JSX)
-const AboutSection = ({ id }) => (
-    <section id={id} className="py-24 bg-white text-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-4xl font-extrabold text-center mb-16 border-b-2 border-yellow-400 pb-2 inline-block mx-auto">
-                Our Investment Strategy
-            </h2>
+// --- About -----------------------------------------------------------------
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+const AT_A_GLANCE = [
+    ['Structure', 'Privately held investment and holding company'],
+    ['Based in', 'Dallas–Fort Worth, Texas'],
+    ['Focus', 'Operating businesses, commercial real estate, strategic investments'],
+    ['Horizon', 'Long-term ownership'],
+    ['Process', 'Direct, confidential, and deliberate'],
+];
+
+const AboutSection = ({ id }) => (
+    <section id={id} className="py-24 bg-white text-gray-900 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionHeading className="mb-16">About Blue Star</SectionHeading>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
                 <div className="space-y-6">
                     <p className="text-lg text-gray-600 leading-relaxed">
-                        Blue Star Equity Group is an active management private equity firm focused on identifying, acquiring, and developing high-potential businesses across diverse sectors. Our model is built on flexibility and deep operational expertise, allowing us to generate superior returns regardless of the investment origin.
+                        Blue Star Equity Group is a privately held investment and holding company
+                        based in the Dallas–Fort Worth area. We acquire, build, and hold — operating
+                        businesses, commercial real estate, and select strategic investments.
                     </p>
-                    <p className="text-xl font-semibold text-blue-700">
-                        We don't just invest capital; we invest operational leadership and strategic vision to unlock intrinsic value.
+                    <p className="text-xl font-semibold text-blue-700 leading-relaxed">
+                        Our private ownership allows us to invest on our own timeline, remain patient
+                        when patience is warranted, and walk away when the economics don't make sense.
                     </p>
-                    <ul className="space-y-4 pt-4">
-                        <li className="flex items-start">
-                            <Zap className="w-6 h-6 text-yellow-500 mr-3 mt-1 flex-shrink-0" />
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-900">Acquisition & Transformation</h3>
-                                <p className="text-gray-600">Acquiring established businesses with solid fundamentals that require strategic realignment and aggressive growth initiatives.</p>
-                            </div>
-                        </li>
-                        <li className="flex items-start">
-                            <CornerDownRight className="w-6 h-6 text-yellow-500 mr-3 mt-1 flex-shrink-0" />
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-900">Ground-Up Ventures</h3>
-                                <p className="text-gray-600">Building new, innovative companies from the initial concept, leveraging market gaps and technology for scalable solutions.</p>
-                            </div>
-                        </li>
-                    </ul>
+                    <p className="text-lg text-gray-600 leading-relaxed">
+                        We prefer businesses and assets we can understand: durable demand, honest
+                        economics, and a clear reason the value should still be there in ten years.
+                        We would rather pass on a good opportunity than force a marginal one.
+                    </p>
                 </div>
-                {/* Value Creation Visual Placeholder */}
+
+                {/* At a glance */}
                 <div className="bg-gray-100 p-8 rounded-xl shadow-2xl">
                     <div className="text-center">
                         <Briefcase className="w-12 h-12 mx-auto text-blue-600 mb-4" />
-                        <h4 className="text-2xl font-bold text-gray-900 mb-4">Value Creation Cycle</h4>
-                        <div className="space-y-4">
-                            <p className="flex items-center justify-center text-lg bg-white p-3 rounded-lg shadow-md border-b-4 border-blue-500">
-                                1. Target Identification & Due Diligence
-                            </p>
-                            <p className="flex items-center justify-center text-lg bg-white p-3 rounded-lg shadow-md border-b-4 border-blue-500">
-                                2. Strategic Investment & Operational Overhaul
-                            </p>
-                            <p className="flex items-center justify-center text-lg bg-white p-3 rounded-lg shadow-md border-b-4 border-blue-500">
-                                3. Sustained Growth & Market Expansion
-                            </p>
-                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-6">At a Glance</h3>
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
-);
-
-// Portfolio Section (Updated with Hiring Indicator)
-const PortfolioSection = ({ id, onNavigate }) => {
-    const { hiringStatus } = useFirebase();
-
-    const portfolioCompanies = [
-        {
-            name: "Lonestar Hydro Solutions",
-            description: "Providing advanced, sustainable water management and hydraulic solutions for commercial and industrial applications.",
-            icon: <Landmark className="w-10 h-10 text-white" />,
-            type: "Acquisition & Optimization",
-            url: "https://funny-concha-c4f069.netlify.app/",
-            isHiring: hiringStatus["Lonestar Hydro Solutions"]
-        },
-        {
-            name: "Circle H Lawn and Tree",
-            description: "A comprehensive, customer-focused provider of professional landscape and arboreal maintenance services.",
-            icon: <Sprout className="w-10 h-10 text-white" />,
-            type: "Acquisition & Optimization",
-            url: "https://v5h4wvjryn-star.github.io/CHLTv2/",
-            isHiring: hiringStatus["Circle H Lawn and Tree"]
-        },
-        {
-            name: "Blue Star Heritage Insurance",
-            description: "A modern insurance brokerage specializing in risk management and tailored personal and commercial coverage solutions.",
-            icon: <Shield className="w-10 h-10 text-white" />,
-            type: "Ground-Up Venture",
-            url: "https://jovial-manatee-38798e.netlify.app/#services",
-            isHiring: hiringStatus["Blue Star Heritage Insurance"]
-        },
-        {
-            name: "Blue Star FinCo",
-            description: "Financial services platform offering flexible debt and equity financing solutions to small and mid-market businesses.",
-            icon: <Briefcase className="w-10 h-10 text-white" />,
-            type: "Ground-Up Venture",
-            url: null,
-            isHiring: hiringStatus["Blue Star FinCo"]
-        },
-    ];
-
-    return (
-        <section id={id} className="py-24 bg-gray-900 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-4xl font-extrabold text-center mb-16 border-b-2 border-blue-400 pb-2 inline-block mx-auto">
-                    Our Portfolio of Companies
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
-                    {portfolioCompanies.map((company, index) => (
-                        <div
-                            key={index}
-                            className="bg-gray-800 p-6 rounded-xl shadow-2xl transition duration-500 hover:shadow-yellow-400/30 hover:bg-gray-700/80 transform hover:scale-[1.02] border-t-4 border-yellow-400 flex flex-col justify-between"
-                        >
-                            <div>
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="p-4 rounded-full bg-blue-600 inline-block">
-                                        {company.icon}
-                                    </div>
-                                    {/* Now Hiring Indicator (Green Light) */}
-                                    <div
-                                        className={`flex items-center space-x-2 text-sm font-semibold rounded-full px-3 py-1 transition-colors duration-500 ${
-                                            company.isHiring
-                                                ? 'bg-green-600 text-white shadow-lg cursor-pointer'
-                                                : 'bg-gray-600 text-gray-400'
-                                        }`}
-                                        onClick={() => company.isHiring && onNavigate('careers')}
-                                    >
-                                        <div className={`w-2 h-2 rounded-full ${company.isHiring ? 'bg-green-300 animate-pulse' : 'bg-gray-400'}`}></div>
-                                        <span>{company.isHiring ? 'Now Hiring' : 'No Openings'}</span>
-                                    </div>
-                                </div>
-
-                                <h3 className="text-2xl font-bold mb-3 text-yellow-400">
-                                    {company.name}
-                                </h3>
-                                <p className="text-gray-300 mb-4 text-sm font-light italic">
-                                    {company.type}
-                                </p>
-                                <p className="text-gray-400 leading-relaxed mb-6">
-                                    {company.description}
-                                </p>
-                            </div>
-
-                            {/* Conditional Website Button */}
-                            {company.url ? (
-                                <a
-                                    href={company.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="mt-4 inline-flex items-center justify-center w-full px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-lg transform hover:scale-[1.01]"
-                                >
-                                    Visit Website
-                                    <ArrowRight className="ml-2 w-4 h-4" />
-                                </a>
-                            ) : (
-                                <button
-                                    disabled
-                                    className="mt-4 inline-flex items-center justify-center w-full px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-gray-500 bg-gray-700 cursor-not-allowed"
-                                >
-                                    Website Coming Soon
-                                </button>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-};
-
-// Careers Section (New Public Page)
-const CareersSection = ({ id, onNavigate }) => {
-    const { jobs } = useFirebase();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filterCompany, setFilterCompany] = useState('');
-    const [filterLocation, setFilterLocation] = useState('');
-
-    const portfolioCompanies = [
-        "All Companies", "Lonestar Hydro Solutions", "Circle H Lawn and Tree",
-        "Blue Star Heritage Insurance", "Blue Star FinCo"
-    ];
-
-    const allLocations = [...new Set(jobs.map(job => job.location))].sort();
-
-    const filteredJobs = jobs.filter(job => {
-        const matchesQuery = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                             job.description.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCompany = filterCompany === 'All Companies' || !filterCompany || job.company === filterCompany;
-        const matchesLocation = !filterLocation || job.location === filterLocation;
-
-        return matchesQuery && matchesCompany && matchesLocation;
-    });
-
-    return (
-        <section id={id} className="py-24 bg-gray-50 text-gray-900 min-h-[80vh]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-4xl font-extrabold text-center mb-16 border-b-2 border-blue-500 pb-2 inline-block mx-auto">
-                    Career Opportunities
-                </h2>
-
-                {/* Filter and Search */}
-                <div className="bg-white p-6 rounded-xl shadow-lg mb-10 border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <input
-                        type="text"
-                        placeholder="Search job title or keyword..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full p-3 rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition"
-                    />
-                    <select
-                        value={filterCompany}
-                        onChange={(e) => setFilterCompany(e.target.value)}
-                        className="w-full p-3 rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition"
-                    >
-                        {portfolioCompanies.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <select
-                        value={filterLocation}
-                        onChange={(e) => setFilterLocation(e.target.value)}
-                        className="w-full p-3 rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition"
-                    >
-                        <option value="">All Locations</option>
-                        {allLocations.map(l => <option key={l} value={l}>{l}</option>)}
-                    </select>
-                </div>
-
-                {/* Job Listings */}
-                {filteredJobs.length > 0 ? (
-                    <div className="space-y-6">
-                        {filteredJobs.map(job => (
-                            <div key={job.id} className="bg-white p-6 rounded-xl shadow-md border-l-4 border-yellow-500 hover:shadow-lg transition">
-                                <h3 className="text-2xl font-bold text-blue-700">{job.title}</h3>
-                                <p className="text-sm text-gray-500 mb-3">
-                                    {job.company} | {job.location} | Posted: {new Date(job.datePosted).toLocaleDateString()}
-                                </p>
-                                <p className="text-gray-600 whitespace-pre-wrap">{job.description}</p>
-                                <button className="mt-4 text-sm font-semibold text-yellow-600 hover:text-yellow-700 flex items-center">
-                                    Apply Now <ArrowRight className="w-4 h-4 ml-1" />
-                                </button>
+                    <dl className="space-y-4">
+                        {AT_A_GLANCE.map(([term, detail]) => (
+                            <div key={term} className="bg-white p-4 rounded-lg shadow-md border-b-4 border-blue-500">
+                                <dt className="text-xs font-semibold uppercase tracking-widest text-blue-700 mb-1">
+                                    {term}
+                                </dt>
+                                <dd className="text-gray-700">{detail}</dd>
                             </div>
                         ))}
-                    </div>
-                ) : (
-                    <div className="text-center p-10 bg-white rounded-xl shadow-lg text-gray-500">
-                        <X className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                        <p className="text-xl font-semibold">No open positions matching your criteria at this time.</p>
-                        <p className="mt-2">Check back soon or try adjusting your search filters.</p>
-                    </div>
-                )}
+                    </dl>
+                </div>
             </div>
-        </section>
-    );
-};
-
-// Auth Box Component (used by PrivateJobPost)
-const AuthBox = ({ children, title, id }) => (
-    <section id={id} className="py-24 bg-gray-900 text-white min-h-screen flex items-center">
-        <div className="max-w-md mx-auto p-8 bg-gray-800 rounded-xl shadow-2xl border-t-4 border-yellow-400">
-            <AtSign className="w-10 h-10 text-yellow-400 mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-center mb-6">{title}</h2>
-            {children}
         </div>
     </section>
 );
 
-// Post Job Form Component (moved outside to prevent re-renders)
-const PostJobForm = ({ handleSubmit, jobData, handleChange, portfolioCompanies, status }) => (
-    <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-            <label htmlFor="company" className="block text-sm font-medium text-gray-300 mb-1">Company</label>
-            <select
-                id="company"
-                name="company"
-                value={jobData.company}
-                onChange={handleChange}
-                required
-                className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
-            >
-                {portfolioCompanies.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-        </div>
+// --- What We Do ------------------------------------------------------------
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-1">Job Title</label>
-                <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    value={jobData.title}
-                    onChange={handleChange}
-                    required
-                    className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
-                />
-            </div>
-            <div>
-                <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-1">Location (City, State/Remote)</label>
-                <input
-                    type="text"
-                    id="location"
-                    name="location"
-                    value={jobData.location}
-                    onChange={handleChange}
-                    required
-                    className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
-                />
-            </div>
-        </div>
+const FOCUS_AREAS = [
+    {
+        name: 'Operating Businesses',
+        icon: <Briefcase className="w-10 h-10 text-white" />,
+        body: 'We acquire, invest in, and partner with privately held businesses where long-term ownership, operational focus, and sensible use of technology can create durable value. We prefer companies with real customers, understandable economics, and a reason to exist in ten years.',
+    },
+    {
+        name: 'Commercial Real Estate',
+        icon: <Building className="w-10 h-10 text-white" />,
+        body: 'We selectively evaluate commercial real estate where durable cash flow, strategic use, and long-term ownership can create value. Our interest is in owning good assets for a long time, not in transaction volume.',
+        link: { label: 'What we evaluate', target: 'real-estate' },
+    },
+    {
+        name: 'Strategic & Venture Investments',
+        icon: <Zap className="w-10 h-10 text-white" />,
+        body: 'We consider focused investments in technology and emerging businesses where there is genuine strategic alignment with what we own or understand, and a realistic path to long-term value rather than a story.',
+    },
+];
 
-        <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-1">Job Description</label>
-            <textarea
-                id="description"
-                name="description"
-                rows="8"
-                value={jobData.description}
-                onChange={handleChange}
-                required
-                className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500 transition"
-            ></textarea>
-        </div>
+const FocusSection = ({ id, onNavigate }) => (
+    <section id={id} className="py-24 bg-gray-900 text-white scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionHeading accent="blue" className="mb-6">What We Do</SectionHeading>
+            <p className="text-center text-lg text-gray-400 max-w-3xl mx-auto mb-16">
+                Three areas, one approach: understandable assets, disciplined pricing,
+                and a holding period measured in years rather than quarters.
+            </p>
 
-        <button
-            type="submit"
-            disabled={status?.type === 'submitting'}
-            className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-            {status?.type === 'submitting' ? status.message : 'Post New Job Opening'}
-            {status?.type === 'submitting' ? <Star className="ml-2 w-4 h-4 animate-spin" /> : <Check className="ml-2 w-4 h-4" />}
-        </button>
-    </form>
-);
-
-// Manage Jobs List Component (moved outside to prevent re-renders)
-const ManageJobsList = ({ jobs, confirmDeleteId, handleDeleteStart, handleDeleteConfirm, status }) => (
-    <div>
-        {jobs.length === 0 ? (
-            <div className="text-center p-10 bg-gray-700 rounded-xl text-gray-400">
-                <X className="w-12 h-12 mx-auto mb-4" />
-                <p className="text-xl font-semibold">No open positions found.</p>
-                <p className="mt-2">Use the "Post New Job" tab to create a role.</p>
-            </div>
-        ) : (
-            <div className="space-y-4">
-                {jobs.map(job => (
-                    <div key={job.id} className="bg-gray-700 p-4 rounded-lg flex items-center justify-between shadow-md">
-                        <div>
-                            <h4 className="text-lg font-bold text-white">{job.title}</h4>
-                            <p className="text-sm text-gray-400">
-                                {job.company} - {job.location}
-                            </p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {FOCUS_AREAS.map((area) => (
+                    <div
+                        key={area.name}
+                        className="bg-gray-800 p-8 rounded-xl shadow-2xl transition duration-500 hover:shadow-yellow-400/30 hover:bg-gray-700/80 border-t-4 border-yellow-400 flex flex-col"
+                    >
+                        <div className="p-4 rounded-full bg-blue-600 inline-block self-start mb-6">
+                            {area.icon}
                         </div>
-
-                        {confirmDeleteId === job.id ? (
-                            <div className="flex space-x-2">
-                                <button
-                                    onClick={() => handleDeleteConfirm(job.id, job.title)}
-                                    disabled={status?.type === 'submitting'}
-                                    className="px-3 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition disabled:opacity-50"
-                                >
-                                    CONFIRM CLOSE
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteStart(null)}
-                                    className="px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-500 transition"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        ) : (
+                        <h3 className="text-2xl font-bold mb-4 text-yellow-400">{area.name}</h3>
+                        <p className="text-gray-300 leading-relaxed flex-grow">{area.body}</p>
+                        {area.link && (
                             <button
-                                onClick={() => handleDeleteStart(job.id)}
-                                disabled={status?.type === 'submitting'}
-                                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={() => onNavigate(area.link.target)}
+                                className="mt-6 inline-flex items-center self-start text-sm font-semibold text-yellow-400 hover:text-yellow-300 transition"
                             >
-                                Close Role
+                                {area.link.label}
+                                <ArrowRight className="ml-2 w-4 h-4" />
                             </button>
                         )}
                     </div>
                 ))}
             </div>
-        )}
-    </div>
+        </div>
+    </section>
 );
 
-// Private Job Posting Page (Updated with Email/Code Auth and Management)
-const PrivateJobPost = ({ id }) => {
-    const { db, appId, jobs } = useFirebase();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [authStep, setAuthStep] = useState('email'); // 'email', 'code'
-    const [email, setEmail] = useState('');
-    const [code, setCode] = useState('');
-    const [status, setStatus] = useState(null);
-    const [jobData, setJobData] = useState({ title: '', company: 'Lonestar Hydro Solutions', location: '', description: '' });
-    const [managementView, setManagementView] = useState('post'); // 'post' or 'manage'
-    const [confirmDeleteId, setConfirmDeleteId] = useState(null); // NEW: Track which job is pending deletion
+// --- Commercial Real Estate ------------------------------------------------
 
+const RE_CATEGORIES = [
+    {
+        name: 'Income-producing commercial property',
+        icon: <Building className="w-8 h-8 text-blue-600" />,
+        body: 'Assets with credible in-place cash flow and a tenant base we can understand.',
+    },
+    {
+        name: 'Owner-occupied and operationally useful property',
+        icon: <Store className="w-8 h-8 text-blue-600" />,
+        body: 'Real estate that supports a business we own or intend to own.',
+    },
+    {
+        name: 'Small business and flex space',
+        icon: <Warehouse className="w-8 h-8 text-blue-600" />,
+        body: 'Light industrial, flex, and small-bay properties serving local operators.',
+    },
+    {
+        name: 'Multi-tenant commercial',
+        icon: <Users className="w-8 h-8 text-blue-600" />,
+        body: 'Properties where diversified tenancy supports steadier income.',
+    },
+    {
+        name: 'Select value-add opportunities',
+        icon: <TrendingUp className="w-8 h-8 text-blue-600" />,
+        body: 'Situations where focused capital, better management, or repositioning improves the asset — not speculative development.',
+    },
+];
 
-    // Portfolio companies list
-    const portfolioCompanies = [
-        "Lonestar Hydro Solutions", "Circle H Lawn and Tree",
-        "Blue Star Heritage Insurance", "Blue Star FinCo"
-    ];
+const RealEstateSection = ({ id }) => (
+    <section id={id} className="py-24 bg-gradient-to-b from-gray-50 to-white text-gray-900 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionHeading className="mb-6">Commercial Real Estate</SectionHeading>
+            <p className="text-center text-lg text-gray-500 max-w-3xl mx-auto mb-16">
+                Real estate is a natural extension of how we already invest: understandable
+                assets, durable cash flow, and a long holding period. We evaluate commercial
+                property in the Dallas–Fort Worth area and across Texas where income, strategic
+                use, or long-term ownership can create value.
+            </p>
 
-    // Step 1: Handle Email Submission - Call Cloud Function to send code
-    const handleSendCode = async (e) => {
-        e.preventDefault();
-        setStatus({ type: 'submitting', message: 'Sending code...' });
-
-        try {
-            // Call cloud function
-            const sendLoginCode = httpsCallable(functions, 'sendLoginCode');
-            const result = await sendLoginCode({ email });
-
-            setAuthStep('code');
-            setStatus({
-                type: 'info',
-                message: `A 6-digit code has been sent to ${email}. Please check your inbox (and spam folder).`
-            });
-        } catch (error) {
-            console.error('Error sending code:', error);
-
-            let errorMessage = 'Failed to send code. Please try again.';
-            if (error.code === 'functions/permission-denied') {
-                errorMessage = 'Access denied. Only authorized users can log in.';
-            } else if (error.code === 'functions/invalid-argument') {
-                errorMessage = 'Please enter a valid email address.';
-            } else if (error.code === 'functions/unavailable') {
-                errorMessage = 'Email service temporarily unavailable. Please contact support.';
-            }
-
-            setStatus({ type: 'error', message: errorMessage });
-        }
-    };
-
-    // Step 2: Handle Code Verification - Call Cloud Function to verify
-    const handleLoginWithCode = async (e) => {
-        e.preventDefault();
-        setStatus({ type: 'submitting', message: 'Verifying code...' });
-
-        try {
-            // Call cloud function
-            const verifyLoginCode = httpsCallable(functions, 'verifyLoginCode');
-            const result = await verifyLoginCode({ email, code });
-
-            // Sign in with custom token
-            if (result.data.token) {
-                await signInWithCustomToken(auth, result.data.token);
-            }
-
-            setIsLoggedIn(true);
-            setStatus({ type: 'success', message: 'Login successful!' });
-        } catch (error) {
-            console.error('Error verifying code:', error);
-
-            let errorMessage = 'Invalid code. Please try again.';
-            if (error.code === 'functions/not-found') {
-                errorMessage = 'Invalid or expired code.';
-            } else if (error.code === 'functions/deadline-exceeded') {
-                errorMessage = 'Code has expired. Please request a new one.';
-            } else if (error.code === 'functions/permission-denied') {
-                errorMessage = 'Invalid code. Please try again.';
-            }
-
-            setStatus({ type: 'error', message: errorMessage });
-        }
-    };
-
-    // Job Post Submission
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setJobData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setStatus({ type: 'submitting', message: 'Posting...' });
-        if (!jobData.title || !jobData.location || !jobData.description) {
-            setStatus({ type: 'error', message: 'Please fill out all required fields.' });
-            return;
-        }
-
-        try {
-            const jobsCollectionPath = `/artifacts/${appId}/public/data/jobs`;
-            await addDoc(collection(db, jobsCollectionPath), {
-                ...jobData,
-                datePosted: serverTimestamp()
-            });
-            setStatus({ type: 'success', message: `Job "${jobData.title}" posted successfully for ${jobData.company}!` });
-            setJobData({ title: '', company: 'Lonestar Hydro Solutions', location: '', description: '' }); // Reset form
-        } catch (error) {
-            console.error("Error posting job:", error);
-            setStatus({ type: 'error', message: 'Failed to post job. Check console for details.' });
-        }
-    };
-
-    // NEW: Function to start the deletion confirmation process
-    const handleDeleteStart = (jobId) => {
-        setConfirmDeleteId(jobId);
-        setStatus(null); // Clear main status message
-    };
-
-    // NEW: Function to execute the deletion
-    const handleDeleteConfirm = async (jobId, jobTitle) => {
-        setConfirmDeleteId(null); // Clear confirmation flag
-        setStatus({ type: 'submitting', message: `Closing ${jobTitle}...` });
-
-        try {
-            const jobDocPath = `/artifacts/${appId}/public/data/jobs/${jobId}`;
-            await deleteDoc(doc(db, jobDocPath));
-            setStatus({ type: 'success', message: `Position "${jobTitle}" successfully closed.` });
-        } catch (error) {
-            console.error("Error deleting job:", error);
-            setStatus({ type: 'error', message: 'Failed to close job. Check console for details.' });
-        }
-    };
-
-
-    // --- Conditional Rendering for Auth Steps ---
-
-    if (!isLoggedIn) {
-        if (authStep === 'email') {
-            return (
-                <AuthBox id={id} title="Admin Access: Enter Email">
-                    <form onSubmit={handleSendCode} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => { setEmail(e.target.value); setStatus(null); }}
-                                required
-                                className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:ring-yellow-500 focus:border-yellow-500 transition"
-                            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                {RE_CATEGORIES.map((cat) => (
+                    <div
+                        key={cat.name}
+                        className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-300 transition-all duration-300"
+                    >
+                        <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mb-6">
+                            {cat.icon}
                         </div>
-                        <button
-                            type="submit"
-                            className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-lg"
-                        >
-                            Send Login Code
-                            <Mail className="ml-2 w-4 h-4" />
-                        </button>
-                        {status?.type === 'error' && (
-                            <p className="text-center text-red-400">{status.message}</p>
-                        )}
-                        <p className="text-center text-xs text-gray-500 pt-2">
-                            Only the authorized domain owner can proceed.
-                        </p>
-                    </form>
-                </AuthBox>
-            );
-        }
-
-        if (authStep === 'code') {
-            return (
-                <AuthBox id={id} title="Admin Access: Enter Code">
-                    {status?.type === 'info' && (
-                        <p className="text-center text-blue-400 p-2 mb-4 bg-gray-700 rounded-md">
-                            {status.message}
-                        </p>
-                    )}
-                    <form onSubmit={handleLoginWithCode} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">6-Digit Code</label>
-                            <input
-                                type="text"
-                                value={code}
-                                onChange={(e) => { setCode(e.target.value); setStatus(null); }}
-                                required
-                                maxLength="6"
-                                className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white text-center text-xl tracking-widest focus:ring-yellow-500 focus:border-yellow-500 transition"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-lg"
-                        >
-                            Verify & Log In
-                            <Key className="ml-2 w-4 h-4" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => { setAuthStep('email'); setStatus(null); setEmail(''); setCode(''); }}
-                            className="w-full text-sm text-gray-400 hover:text-gray-200 transition"
-                        >
-                            Change Email
-                        </button>
-                        {status?.type === 'error' && (
-                            <p className="text-center text-red-400">{status.message}</p>
-                        )}
-                    </form>
-                </AuthBox>
-            );
-        }
-    }
-
-    return (
-        <section id={id} className="py-24 bg-gray-900 text-white min-h-screen">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-4xl font-extrabold text-center mb-16 border-b-2 border-yellow-400 pb-2 inline-block mx-auto">
-                    Admin: Job Management
-                </h2>
-
-                <div className="p-8 bg-gray-800 rounded-xl shadow-2xl">
-                    <div className="flex justify-between items-center pb-4 mb-6 border-b border-gray-700">
-                        <p className="text-sm text-green-400">Authenticated as {AUTHORIZED_EMAIL}</p>
-                        <button
-                            type="button"
-                            onClick={() => setIsLoggedIn(false)}
-                            className="text-sm text-red-400 hover:text-red-300"
-                        >
-                            Log Out
-                        </button>
+                        <h3 className="font-bold text-lg text-gray-900 mb-3">{cat.name}</h3>
+                        <p className="text-gray-500 leading-relaxed">{cat.body}</p>
                     </div>
+                ))}
+            </div>
 
-                    {/* Tabs */}
-                    <div className="flex mb-6 space-x-4">
-                        <button
-                            onClick={() => {setManagementView('post'); setConfirmDeleteId(null); setStatus(null);}} // Reset status/confirm on tab switch
-                            className={`px-4 py-2 text-lg font-semibold rounded-t-lg transition ${
-                                managementView === 'post'
-                                    ? 'bg-yellow-400 text-gray-900'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                            }`}
-                        >
-                            Post New Job
-                        </button>
-                        <button
-                            onClick={() => {setManagementView('manage'); setConfirmDeleteId(null); setStatus(null);}} // Reset status/confirm on tab switch
-                            className={`px-4 py-2 text-lg font-semibold rounded-t-lg transition ${
-                                managementView === 'manage'
-                                    ? 'bg-yellow-400 text-gray-900'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                            }`}
-                        >
-                            Manage Open Positions ({jobs.length})
-                        </button>
-                    </div>
-
-
-                    {/* Status Message */}
-                    {status?.type && status.type !== 'submitting' && (
-                        <p className={`text-center p-3 rounded-lg mb-4 font-semibold ${
-                            status.type === 'success' ? 'bg-green-700 text-green-200' : 'bg-red-700 text-red-200'
-                        }`}>
-                            {status.message}
-                        </p>
-                    )}
-
-
-                    {managementView === 'post' ? (
-                        <PostJobForm
-                            handleSubmit={handleSubmit}
-                            jobData={jobData}
-                            handleChange={handleChange}
-                            portfolioCompanies={portfolioCompanies}
-                            status={status}
-                        />
-                    ) : (
-                        <ManageJobsList
-                            jobs={jobs}
-                            confirmDeleteId={confirmDeleteId}
-                            handleDeleteStart={handleDeleteStart}
-                            handleDeleteConfirm={handleDeleteConfirm}
-                            status={status}
-                        />
-                    )}
+            {/* How we underwrite */}
+            <div className="bg-gray-900 text-white rounded-2xl p-10">
+                <h3 className="text-2xl font-bold mb-4 text-center">How We Underwrite</h3>
+                <p className="text-gray-300 leading-relaxed max-w-3xl mx-auto text-center mb-8">
+                    We underwrite to in-place income, verified operating expenses, and realistic
+                    reserves. We size debt conservatively, we review leases and tenant credit
+                    carefully, and we prefer clean diligence over speed. If the economics don't
+                    support the price, we say so early rather than retrade late.
+                </p>
+                <div className="border-t border-gray-700 pt-8 text-center">
+                    <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+                        <span className="font-semibold text-white">Brokers and property owners:</span>{' '}
+                        we review commercial opportunities directly and respond promptly, including
+                        on the ones we pass on.
+                    </p>
+                    <a
+                        href={`mailto:${EMAIL_REAL_ESTATE}?subject=Commercial%20real%20estate%20opportunity`}
+                        className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-4 rounded-lg transition"
+                    >
+                        Send Us a Property
+                    </a>
                 </div>
             </div>
-        </section>
-    );
-};
+        </div>
+    </section>
+);
 
+// --- How We Invest ---------------------------------------------------------
 
-// Seller Section
+const PRINCIPLES = [
+    {
+        name: 'Long-Term Ownership',
+        icon: <Clock className="w-7 h-7 text-gray-900" />,
+        body: 'We buy to hold. Our default holding period is indefinite, and we underwrite as though we will still own the asset in ten years.',
+    },
+    {
+        name: 'Disciplined Underwriting',
+        icon: <Calculator className="w-7 h-7 text-gray-900" />,
+        body: 'We underwrite to what a business or property actually produces today, not to what it might produce under ideal conditions.',
+    },
+    {
+        name: 'Operational Understanding',
+        icon: <Wrench className="w-7 h-7 text-gray-900" />,
+        body: 'We want to understand how something actually runs — its customers, its costs, its people — before we own it.',
+    },
+    {
+        name: 'Responsible Leverage',
+        icon: <Scale className="w-7 h-7 text-gray-900" />,
+        body: 'Debt is a tool, not a strategy. We size it so an asset can carry itself through a soft year.',
+    },
+    {
+        name: 'Willingness to Walk',
+        icon: <DoorOpen className="w-7 h-7 text-gray-900" />,
+        body: 'Most opportunities do not work. We say no early and clearly rather than retrade late.',
+    },
+];
+
+const ApproachSection = ({ id }) => (
+    <section id={id} className="py-24 bg-gray-900 text-white scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionHeading accent="blue" className="mb-16">How We Invest</SectionHeading>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                {PRINCIPLES.map((principle, index) => (
+                    <div
+                        key={principle.name}
+                        className={`flex items-start bg-gray-800/60 rounded-xl p-6 border-l-4 border-yellow-400 ${
+                            index === PRINCIPLES.length - 1 ? 'md:col-span-2' : ''
+                        }`}
+                    >
+                        <div className="bg-yellow-400 rounded-lg p-3 mr-5 flex-shrink-0">
+                            {principle.icon}
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-white mb-2">{principle.name}</h3>
+                            <p className="text-gray-400 leading-relaxed">{principle.body}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </section>
+);
+
+// --- Sellers (preserved from the existing site) ----------------------------
+
 const SellerSection = ({ id }) => (
-    <section id={id} className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white">
+    <section id={id} className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white scroll-mt-20">
         <div className="max-w-5xl mx-auto">
             <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 text-center mb-6 leading-tight">Thinking About Selling Your Business?</h2>
             <p className="text-center text-xl text-gray-500 mb-16 max-w-3xl mx-auto">
                 Blue Star Equity Group acquires service-based businesses from owners who have built something worth preserving.
             </p>
-            <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <div className="grid lg:grid-cols-3 gap-8 mb-12">
 
                 {/* Card 1 */}
-                <div className="bg-white rounded-2xl p-10 text-center border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-300 transition-all duration-300">
+                <div className="bg-white rounded-2xl p-8 lg:p-10 text-center border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-300 transition-all duration-300">
                     <div className="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
                         <svg className="w-9 h-9 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -933,7 +466,7 @@ const SellerSection = ({ id }) => (
                 </div>
 
                 {/* Card 2 */}
-                <div className="bg-white rounded-2xl p-10 text-center border border-blue-300 shadow-sm hover:shadow-lg transition-all duration-300">
+                <div className="bg-white rounded-2xl p-8 lg:p-10 text-center border border-blue-300 shadow-sm hover:shadow-lg transition-all duration-300">
                     <div className="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
                         <svg className="w-9 h-9 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -944,14 +477,14 @@ const SellerSection = ({ id }) => (
                 </div>
 
                 {/* Card 3 */}
-                <div className="bg-white rounded-2xl p-10 text-center border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-300 transition-all duration-300">
+                <div className="bg-white rounded-2xl p-8 lg:p-10 text-center border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-300 transition-all duration-300">
                     <div className="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
                         <svg className="w-9 h-9 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                     </div>
-                    <h3 className="font-bold text-xl text-gray-900 mb-3">Confidential & Straightforward</h3>
-                    <p className="text-gray-500">Our process is direct and confidential. No brokers, no pressure. We move with respect for your timeline and clear communication throughout.</p>
+                    <h3 className="font-bold text-xl text-gray-900 mb-3">Confidential &amp; Straightforward</h3>
+                    <p className="text-gray-500">Our process is direct and confidential. We work readily with brokers, attorneys, and CPAs when you prefer, and we move with respect for your timeline and clear communication throughout.</p>
                 </div>
 
             </div>
@@ -965,7 +498,7 @@ const SellerSection = ({ id }) => (
                     <div className="flex items-start"><span className="text-blue-400 mr-3 text-xl">✓</span><span>Owner ready to transition within 12–24 months</span></div>
                     <div className="flex items-start"><span className="text-blue-400 mr-3 text-xl">✓</span><span>Texas-based or surrounding region preferred</span></div>
                 </div>
-                <a href="mailto:acquisitions@bluestarequitygroup.com" className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-4 rounded-lg transition">
+                <a href={`mailto:${EMAIL_ACQUISITIONS}`} className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-4 rounded-lg transition">
                     Start a Confidential Conversation
                 </a>
             </div>
@@ -974,57 +507,86 @@ const SellerSection = ({ id }) => (
     </section>
 );
 
+// --- Contact ---------------------------------------------------------------
 
-// Contact Section
-const ContactSection = ({ id }) => {
-    return (
-        <section id={id} className="py-24 bg-white text-gray-900">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h2 className="text-4xl font-extrabold text-center mb-6 border-b-2 border-blue-400 pb-2 inline-block mx-auto">
-                    Contact Us
-                </h2>
+const CONTACT_ROUTES = [
+    { label: 'General inquiries', email: EMAIL_GENERAL },
+    { label: 'Business owners & intermediaries', email: EMAIL_ACQUISITIONS },
+    { label: 'Commercial real estate', email: EMAIL_REAL_ESTATE },
+];
 
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-4">
-                    We are ready to discuss investment opportunities, partnerships, or any general inquiries.
-                </p>
+const ContactSection = ({ id }) => (
+    <section id={id} className="py-24 bg-white text-gray-900 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <SectionHeading accent="blue" className="mb-6">Contact</SectionHeading>
 
-                <p className="text-gray-500 mb-10">
-                    Click the button below to send us an email and a member of our team will be in touch shortly.
-                </p>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-10">
+                We welcome inquiries regarding acquisitions, partnerships, and commercial
+                real estate opportunities. Every message is read directly and answered.
+            </p>
 
-                <a
-                    href="mailto:info@bluestarequitygroup.com"
-                    className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-semibold rounded-lg text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-lg"
-                >
-                    <Mail className="mr-3 w-5 h-5" />
-                    Email Us
-                </a>
+            <a
+                href={`mailto:${EMAIL_GENERAL}`}
+                className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-semibold rounded-lg text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition duration-300 shadow-lg"
+            >
+                <Mail className="mr-3 w-5 h-5" />
+                Email Us
+            </a>
 
-                <p className="mt-6 text-gray-500 text-sm">
-                    <a href="mailto:info@bluestarequitygroup.com" className="text-blue-600 hover:text-blue-800 transition font-medium">
-                        info@bluestarequitygroup.com
-                    </a>
-                </p>
+            <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto text-left">
+                {CONTACT_ROUTES.map((route) => (
+                    <div key={route.label} className="border-t-2 border-gray-200 pt-4">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-2 sm:min-h-[2.25rem]">
+                            {route.label}
+                        </p>
+                        <a
+                            href={`mailto:${route.email}`}
+                            className="text-sm text-blue-600 hover:text-blue-800 transition font-medium break-words"
+                        >
+                            {route.email}
+                        </a>
+                    </div>
+                ))}
             </div>
-        </section>
-    );
-};
 
-// Footer Component (Unchanged)
+            <p className="mt-12 inline-flex items-center text-gray-500">
+                <MapPin className="w-4 h-4 mr-2" />
+                Dallas–Fort Worth, Texas
+            </p>
+        </div>
+    </section>
+);
+
+// --- Footer ----------------------------------------------------------------
+
 const Footer = () => {
     const currentYear = new Date().getFullYear();
     return (
         <footer className="bg-gray-900 border-t border-gray-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:flex md:items-center md:justify-between">
-                <div className="flex justify-center md:order-2">
-                    <Logo className="text-sm" />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div className="md:flex md:items-center md:justify-between">
+                    <div className="flex justify-center md:order-2">
+                        <Logo className="text-sm" />
+                    </div>
+                    <div className="mt-8 md:mt-0 md:order-1">
+                        <p className="text-center md:text-left text-base text-gray-400">
+                            &copy; {currentYear} Blue Star Equity Group. All rights reserved.
+                        </p>
+                        <p className="text-center md:text-left text-xs text-gray-500 mt-1">
+                            Operating Businesses &middot; Commercial Real Estate &middot; Strategic Investments
+                        </p>
+                        <p className="text-center md:text-left text-xs text-gray-500 mt-1">
+                            Dallas–Fort Worth, Texas
+                        </p>
+                    </div>
                 </div>
-                <div className="mt-8 md:mt-0 md:order-1">
-                    <p className="text-center text-base text-gray-400">
-                        &copy; {currentYear} Blue Star Equity Group. All rights reserved.
-                    </p>
-                    <p className="text-center text-xs text-gray-500 mt-1">
-                        Private Equity | Value Creation | Ground-Up Ventures
+
+                <div className="mt-10 pt-8 border-t border-gray-800">
+                    <p className="text-xs text-gray-500 leading-relaxed max-w-4xl">
+                        Blue Star Equity Group is a privately held investment and holding company.
+                        Information presented on this website is for general informational purposes
+                        only and does not constitute an offer, solicitation, investment advice, legal
+                        advice, or tax advice.
                     </p>
                 </div>
             </div>
@@ -1032,39 +594,72 @@ const Footer = () => {
     );
 };
 
+// --- App -------------------------------------------------------------------
 
-// Main App Component with Routing
 const App = () => {
-    const [currentPage, setCurrentPage] = useState('home');
+    const [currentSection, setCurrentSection] = useState('home');
 
-    const sections = [
-        { id: 'home', name: 'Home' },
-        { id: 'about', name: 'About' },
-        { id: 'sellers', name: 'Sellers' },
-        { id: 'contact', name: 'Contact' },
-    ];
+    const navigate = useCallback((id) => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        setCurrentSection(id);
 
-    const navigate = (pageId) => {
-        setCurrentPage(pageId);
-    };
+        if (window.history?.replaceState) {
+            const base = window.location.pathname + window.location.search;
+            window.history.replaceState(null, '', id === 'home' ? base : `${base}#${id}`);
+        }
+    }, []);
 
-    const mainContent = (
-        <main className="pt-20">
-            <HeroSection id="home" onNavigate={navigate} />
-            <AboutSection id="about" />
-            <SellerSection id="sellers" />
-            <ContactSection id="contact" />
-        </main>
-    );
+    // Honour a deep link such as /#real-estate on first load. React has not
+    // rendered when the browser performs its own hash jump, so do it here.
+    useEffect(() => {
+        const id = window.location.hash.replace('#', '');
+        if (!id) return;
+        const el = document.getElementById(id);
+        if (!el) return;
+        setCurrentSection(id);
+        // Explicit 'auto' overrides the global `scroll-behavior: smooth`, so a
+        // deep link such as /#real-estate lands immediately instead of
+        // animating the whole page past the visitor.
+        requestAnimationFrame(() => el.scrollIntoView({ behavior: 'auto' }));
+    }, []);
+
+    // Keep the active nav item in sync while scrolling.
+    useEffect(() => {
+        if (typeof IntersectionObserver === 'undefined') return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const visible = entries
+                    .filter((entry) => entry.isIntersecting)
+                    .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+                if (visible) setCurrentSection(visible.target.id);
+            },
+            { rootMargin: '-80px 0px -50% 0px', threshold: [0.1, 0.5] }
+        );
+
+        SECTIONS.forEach(({ id }) => {
+            const el = document.getElementById(id);
+            if (el) observer.observe(el);
+        });
+
+        return () => observer.disconnect();
+    }, []);
 
     return (
-        <FirebaseProvider>
-            <div className="min-h-screen bg-white font-sans">
-                <Navbar sections={sections} currentPage={currentPage} onNavigate={navigate} />
-                {mainContent}
-                <Footer />
-            </div>
-        </FirebaseProvider>
+        <div className="min-h-screen bg-white font-sans">
+            <Navbar currentSection={currentSection} onNavigate={navigate} />
+            <main>
+                <HeroSection id="home" onNavigate={navigate} />
+                <AboutSection id="about" />
+                <FocusSection id="focus" onNavigate={navigate} />
+                <RealEstateSection id="real-estate" />
+                <ApproachSection id="approach" />
+                <SellerSection id="sellers" />
+                <ContactSection id="contact" />
+            </main>
+            <Footer />
+        </div>
     );
 };
 

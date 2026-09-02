@@ -34,45 +34,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Inject Firebase Config
-        run: |
-          cat > inject-config.cjs << 'SCRIPT_EOF'
-          const fs = require('fs');
-          const path = require('path');
-
-          const indexPath = path.join(__dirname, 'dist', 'index.html');
-          let html = fs.readFileSync(indexPath, 'utf8');
-
-          const firebaseConfig = {
-            apiKey: process.env.FIREBASE_API_KEY,
-            authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-            appId: process.env.FIREBASE_APP_ID
-          };
-
-          const configScript = `
-          <script>
-            window.__firebase_config = '${JSON.stringify(firebaseConfig)}';
-            window.__app_id = 'bseg-v2';
-          </script>
-          `;
-
-          html = html.replace('</head>', configScript + '</head>');
-          fs.writeFileSync(indexPath, html);
-          console.log('Firebase config injected successfully');
-          SCRIPT_EOF
-
-          node inject-config.cjs
-        env:
-          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
-          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
-          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-
       - name: Copy CNAME to dist
         run: cp CNAME dist/CNAME
 

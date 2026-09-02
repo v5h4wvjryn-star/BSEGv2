@@ -1,0 +1,71 @@
+<!doctype html>
+<!--
+  Source for /public/og-image.png (1200x630) and /public/apple-touch-icon.png (180x180).
+  Uses the existing Blue Star palette: gray-900 #111827, yellow-400 #FCD34D, blue-400 #60A5FA.
+  Regenerate with:  node tools/generate-images.mjs
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #111827; }
+
+  .card {
+    width: 1200px; height: 630px; position: relative; overflow: hidden;
+    background: #111827; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: "Liberation Sans", Helvetica, Arial, sans-serif;
+  }
+  /* Same faint grid used in the site hero */
+  .grid { position: absolute; inset: 0; opacity: 0.10;
+    background-image:
+      linear-gradient(to right, #374151 0.5px, transparent 0.5px),
+      linear-gradient(to bottom, #374151 0.5px, transparent 0.5px);
+    background-size: 80px 80px; }
+
+  .inner { position: relative; z-index: 1; text-align: center; padding: 0 80px; }
+
+  .star { width: 92px; height: 92px; margin: 0 auto 40px; display: block; }
+
+  .wordmark { font-size: 82px; line-height: 1.05; letter-spacing: -1.5px; white-space: nowrap; }
+  .wordmark .a { font-weight: 800; color: #ffffff; }
+  .wordmark .b { font-weight: 300; color: #FCD34D; }
+
+  .rule { width: 140px; height: 3px; background: #FCD34D; margin: 44px auto 40px; }
+
+  .descriptor { font-size: 27px; font-weight: 500; color: #D1D5DB;
+    text-transform: uppercase; letter-spacing: 7px; white-space: nowrap; }
+
+  .locator { margin-top: 34px; font-size: 20px; font-weight: 400; color: #6B7280;
+    letter-spacing: 2.5px; text-transform: uppercase; }
+
+  /* Favicon / apple-touch variant */
+  .icon { width: 180px; height: 180px; background: #111827; border-radius: 0;
+    display: flex; align-items: center; justify-content: center; }
+  .icon svg { width: 118px; height: 118px; }
+</style>
+</head>
+<body>
+  <div class="card" id="og">
+    <div class="grid"></div>
+    <div class="inner">
+      <svg class="star" viewBox="0 0 24 24" fill="#FCD34D" stroke="#FCD34D"
+           stroke-width="1.5" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      <div class="wordmark"><span class="a">Blue Star</span> <span class="b">Equity Group</span></div>
+      <div class="rule"></div>
+      <div class="descriptor">Private Investment &amp; Holdings</div>
+      <div class="locator">Dallas&ndash;Fort Worth, Texas</div>
+    </div>
+  </div>
+
+  <div class="icon" id="icon">
+    <svg viewBox="0 0 24 24" fill="#FCD34D" stroke="#FCD34D" stroke-width="1.5"
+         stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  </div>
+</body>
+</html>

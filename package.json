@@ -2,18 +2,19 @@
   "name": "bsegv2",
   "private": true,
   "version": "1.0.0",
+  "description": "Website for Blue Star Equity Group — a privately held investment and holding company.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "images": "node tools/generate-images.mjs",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "firebase": "^10.7.1"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
