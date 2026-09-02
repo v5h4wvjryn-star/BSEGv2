@@ -4,9 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 // Only addresses that are known-good are used here. See README.md.
 const EMAIL_GENERAL = 'info@bluestarequitygroup.com';
 const EMAIL_ACQUISITIONS = 'acquisitions@bluestarequitygroup.com';
-// Commercial real estate inquiries currently route to the acquisitions mailbox.
-// Switch this to 'realestate@bluestarequitygroup.com' once that mailbox is live.
-const EMAIL_REAL_ESTATE = EMAIL_ACQUISITIONS;
+const EMAIL_REAL_ESTATE = 'realestate@bluestarequitygroup.com';
 
 // --- Icon components (lucide-style, inlined to avoid a dependency) ----------
 const iconProps = (props) => ({
