@@ -25,7 +25,6 @@ through `mailto:` links.
 ```
 BSEGv2/
 ├── .github/workflows/deploy.yml   GitHub Pages build and deploy
-├── archive/careers-admin/         Unused careers/admin source (not built)
 ├── functions/                     Firebase Cloud Functions (not used by the site)
 ├── public/
 │   ├── star-icon.svg              Favicon
@@ -116,9 +115,12 @@ Netlify.
 
 `functions/`, `firebase.json`, and `firestore.rules` support a careers portal
 and admin job-posting UI that were built but never wired into the public site.
-The public site does not load Firebase and does not depend on any of this. The
-front-end source is preserved in `archive/careers-admin/` — read that folder's
-README before reviving any of it.
+The public site does not load Firebase and does not depend on any of this.
+
+The front-end source for those features is not duplicated in the working tree;
+git history preserves it (see commit `63bc24f` and earlier). Do not revive any
+of it without review — the historical copy contains superseded portfolio,
+insurance, and financing claims that must not be republished.
 
 ## Security
 

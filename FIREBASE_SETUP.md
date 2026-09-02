@@ -106,8 +106,9 @@ If you get index-related errors, Firebase will provide a direct link in the cons
 
 > [!NOTE]
 > The careers portal and admin job-posting UI are **not part of the public
-> website**. The source is kept for reference only, in
-> `archive/careers-admin/`. See that folder's README before reviving it.
+> website** and their front-end source is no longer in the working tree. It
+> remains in git history (commit `63bc24f` and earlier) if it is ever needed.
+> Do not revive it without review.
 
 Admin authentication is handled server-side by the Cloud Functions in
 `functions/`. The list of authorised addresses lives there, not in the client.
